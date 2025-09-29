@@ -236,12 +236,11 @@ export default function AddressCard({
                     padding: '12px 16px',
                     fontSize: 14,
                     fontWeight: 600,
-                    background: requiredFilled ? '#000D94' : 'var(--muted)',
+                    background: requiredFilled ? '#000D94' : '#515151',
                     color: '#fff',
                     border: 'none',
                     borderRadius: 8,
                     cursor: requiredFilled ? 'pointer' : 'not-allowed',
-                    opacity: requiredFilled ? 1 : 0.6,
                   }}
                 >
                   CONTINUE TO PAYMENT
