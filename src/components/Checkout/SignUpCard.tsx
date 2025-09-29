@@ -256,9 +256,9 @@ export default function SignUpCard({
                     id="passwordHints"
                     style={{
                       position: 'absolute',
-                      top: '100%',
+                      bottom: '100%',
                       left: 0,
-                      marginTop: 8,
+                      marginBottom: 8,
                       padding: 16,
                       background: 'white',
                       border: '1px solid #e5e7eb',
