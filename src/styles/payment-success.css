@@ -1,0 +1,247 @@
+/* Main container */
+.payment-success-container {
+  min-height: 80vh;
+  width: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+}
+
+/* Main card */
+.payment-success-main {
+  width: 100%;
+  max-width: 700px;
+  padding: 0 24px;
+  margin: 0 auto;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.payment-success-check {
+  margin: 12px auto 24px auto;
+  display: flex;
+  height: 80px;
+  width: 80px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e6f9ed;
+}
+
+.payment-success-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.payment-success-desc {
+  color: #475569;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.payment-success-email {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  word-break: break-word;
+}
+
+.payment-success-email .font-medium {
+  font-weight: 500;
+}
+
+.payment-success-details-card {
+  margin: 32px auto 0 auto;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 24px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
+  box-sizing: border-box;
+}
+
+.payment-success-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payment-success-details-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.payment-success-details-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #00FF5E;
+  text-decoration: underline;
+  cursor: pointer;
+  word-break: break-word;
+}
+
+.payment-success-details-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.98rem;
+  color: #334155;
+  word-break: break-word;
+}
+
+.payment-success-details-list li {
+  margin-bottom: 6px;
+}
+
+.payment-success-details-list .text-slate-500 {
+  color: #64748b;
+  margin-right: 4px;
+}
+
+/* Next step section */
+.payment-success-next {
+  margin: 40px auto 0 auto;
+  max-width: 600px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.payment-success-next-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.payment-success-next-desc {
+  color: #475569;
+  font-size: 1rem;
+  margin-bottom: 18px;
+  word-break: break-word;
+}
+
+.payment-success-next-desc .font-semibold {
+  font-weight: 600;
+}
+
+.payment-success-next-desc .mr-1 {
+  margin-right: 6px;
+}
+
+.mt-6 {
+  margin-top: 24px;
+}
+
+.mt-8 {
+  margin-top: 32px;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-slate-500 {
+  color: #64748b;
+}
+
+.text-red-600 {
+  color: #dc2626;
+}
+
+.payment-success-dashboard-btn {
+  margin-top: 18px;
+  margin-bottom: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 0px solid #059669;
+  background: #00FF5E;
+  padding: 12px 32px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000D94;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.payment-success-dashboard-btn:hover {
+  background: #6ee7b7;
+  transform: translateY(1px);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .payment-success-main {
+    max-width: 100%;
+    padding: 0 12px;
+  }
+  .payment-success-details-card,
+  .payment-success-next {
+    max-width: 100%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .payment-success-main {
+    max-width: 100%;
+    padding: 0 4px;
+  }
+  .payment-success-details-card,
+  .payment-success-next {
+    max-width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  .payment-success-check {
+    height: 54px;
+    width: 54px;
+  }
+  .payment-success-title {
+    font-size: 1.1rem;
+  }
+  .payment-success-desc,
+  .payment-success-next-desc {
+    font-size: 0.95rem;
+  }
+  .payment-success-dashboard-btn {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+  }
+  .payment-success-details-title {
+    font-size: 0.95rem;
+  }
+  .payment-success-details-list {
+    font-size: 0.95rem;
+  }
+}
