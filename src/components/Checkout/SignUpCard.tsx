@@ -259,14 +259,16 @@ export default function SignUpCard({
                       top: '100%',
                       left: 0,
                       marginTop: 8,
-                      padding: 12,
+                      padding: 16,
                       background: 'white',
                       border: '1px solid #e5e7eb',
                       borderRadius: 8,
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                      zIndex: 10,
-                      minWidth: 300,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.15)',
+                      zIndex: 1000,
+                      minWidth: 350,
+                      maxWidth: 400,
                       fontSize: 13,
+                      lineHeight: 1.5,
                     }}
                   >
                     <div style={{ fontWeight: 600, marginBottom: 8, color: '#374151' }}>
