@@ -7,7 +7,7 @@ export default function CheckoutHeader() {
       <div className="inner">
         <div className="logo-wrap">
           <img
-            src={logoFullDark}
+            src={logoDark}
             alt="TraceAQ Aero"
             className="logo"
             width={240}
