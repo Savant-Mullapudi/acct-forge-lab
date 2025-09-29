@@ -225,21 +225,6 @@
 }
 .field .input:focus + .floating-label { color: #2563eb; }
 
-/* Select-specific fixes: keep labels out of the way and ensure solid backgrounds */
-.field select.input {
-  -webkit-appearance: menulist;
-  appearance: auto;
-  background: hsl(var(--card));
-  color: hsl(var(--foreground));
-}
-
-.field select.input + .floating-label {
-  top: 6px;
-  font-size: 11px;
-  color: #6b7280;
-  background: hsl(var(--card));
-}
-
 /* error border on inputs */
 .input.input-error {
   border-color: #ef4444 !important;
