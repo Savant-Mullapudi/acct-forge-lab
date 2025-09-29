@@ -52,14 +52,13 @@ export default function AddressCard({
     touched.city && !addr.city?.trim() ? 'City is required' : '';
 
   const countryValue = (addr.country || '').trim();
-  const isUS = countryValue.toUpperCase() === 'UNITED STATES' || countryValue.toUpperCase() === 'US' || countryValue.toUpperCase() === 'USA';
-  const isCA = countryValue.toUpperCase() === 'CANADA' || countryValue.toUpperCase() === 'CA';
+  const isUS = countryValue === 'United States';
+  const isCA = countryValue === 'Canada';
 
   const stateError = (() => {
     if (!touched.state) return '';
     const v = (addr.state || '').trim();
     if (!v) return 'State/Province is required';
-    if (isUS && !stateUS.test(v.toUpperCase())) return 'Use 2-letter US state code (e.g., CA)';
     return '';
   })();
 
@@ -67,13 +66,26 @@ export default function AddressCard({
     if (!touched.postalCode) return '';
     const v = (addr.postalCode || '').trim();
     if (!v) return 'Postal code is required';
-    if (isUS && !zipUS.test(v)) return 'Enter a valid US ZIP (12345 or 12345-6789)';
-    if (isCA && !zipCA.test(v)) return 'Enter a valid Canadian postal code (A1A 1A1)';
+    if (!/^\d+$/.test(v)) return 'Only numbers allowed';
     return '';
   })();
 
   const countryError =
     touched.country && !countryValue ? 'Country is required' : '';
+
+  const countries = ['United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France', 'Japan', 'India', 'Other'];
+  
+  const usStates = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+  ];
+  
+  const caProvinces = ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'];
+  
+  const stateOptions = isUS ? usStates : isCA ? caProvinces : [];
 
   const noErrors =
     !line1Error && !cityError && !stateError && !postalError && !countryError;
@@ -180,17 +192,28 @@ export default function AddressCard({
                 </div>
 
                 <div className="field">
-                  <input
+                  <select
                     className={`input ${stateError ? 'input-error' : ''}`}
-                    placeholder=" "
                     aria-label="state"
                     aria-invalid={!!stateError}
                     aria-describedby="stateError"
                     value={addr.state ?? ''}
-                    onChange={e => update('state', e.target.value.toUpperCase())}
+                    onChange={e => update('state', e.target.value)}
                     onBlur={() => setTouched(t => ({ ...t, state: true }))}
-                  />
-                  <label className="floating-label">State/Prov. *</label>
+                    disabled={!isUS && !isCA}
+                    style={{
+                      paddingTop: 18,
+                      paddingBottom: 8,
+                      backgroundColor: '#fff',
+                      cursor: (!isUS && !isCA) ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <option value=""></option>
+                    {stateOptions.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                  <label className="floating-label" style={{ top: addr.state ? 6 : 18 }}>State/Prov. *</label>
                   {stateError && <div id="stateError" className="field-error">{stateError}</div>}
                 </div>
 
@@ -202,7 +225,10 @@ export default function AddressCard({
                     aria-invalid={!!postalError}
                     aria-describedby="postalError"
                     value={addr.postalCode ?? ''}
-                    onChange={e => update('postalCode', e.target.value.trim())}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      update('postalCode', val);
+                    }}
                     onBlur={() => setTouched(t => ({ ...t, postalCode: true }))}
                   />
                   <label className="floating-label">Postal code *</label>
@@ -211,17 +237,30 @@ export default function AddressCard({
               </div>
 
               <div className="field">
-                <input
+                <select
                   className={`input ${countryError ? 'input-error' : ''}`}
-                  placeholder=" "
                   aria-label="country"
                   aria-invalid={!!countryError}
                   aria-describedby="countryError"
                   value={addr.country ?? ''}
-                  onChange={e => update('country', e.target.value)}
+                  onChange={e => {
+                    update('country', e.target.value);
+                    update('state', '');
+                  }}
                   onBlur={() => setTouched(t => ({ ...t, country: true }))}
-                />
-                <label className="floating-label">Country *</label>
+                  style={{
+                    paddingTop: 18,
+                    paddingBottom: 8,
+                    backgroundColor: '#fff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value=""></option>
+                  {countries.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <label className="floating-label" style={{ top: addr.country ? 6 : 18 }}>Country *</label>
                 {countryError && <div id="countryError" className="field-error">{countryError}</div>}
               </div>
 
@@ -258,10 +297,6 @@ export default function AddressCard({
                 >
                   Cancel
                 </a>
-              </div>
-
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
-                The address will be used for billing and receipts.
               </div>
             </div>
           </div>
