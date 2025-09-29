@@ -25,7 +25,11 @@ const ResearcherDiscountCard: React.FC = () => {
         <h3 className="sectionTitle" style={{ fontWeight: 600, fontSize: 16, margin: 0, color: '#4285F4', textAlign: 'left' }}>
           Apply for our exclusive researcher discount
         </h3>
-        <i className="fa fa-chevron-down" aria-hidden="true" style={{ fontSize: 14, marginLeft: 8, color: 'grey' }} />
+        <i
+          className="fa fa-chevron-right"
+          aria-hidden="true"
+          style={{ fontSize: 12, marginLeft: 8, color: 'grey' }}
+        />
       </button>
 
       {open && (
