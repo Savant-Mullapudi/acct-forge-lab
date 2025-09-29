@@ -1,27 +1,116 @@
-export default function OrderSummary() {
+import React from 'react';
+import 'font-awesome/css/font-awesome.min.css';
+
+type Props = {
+  productName?: string;
+  seats?: number;
+  unitPrice?: number;
+  currency?: string;
+};
+
+const money = (n: number, currency = 'USD') =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
+
+const OrderSummary: React.FC<Props> = ({
+  productName = 'Trace AQ | Aero',
+  seats = 1,
+  unitPrice = 229,
+  currency = 'USD',
+}: Props) => {
+  const [showDesc, setShowDesc] = React.useState(false);
+  const [coupon, setCoupon] = React.useState('');
+  const [showCouponInput, setShowCouponInput] = React.useState(false);
+
   return (
-    <div className="card cardLg orderCard">
-      <h3 className="order-title">Order Summary</h3>
-      <div className="order-content">
-        <div className="order-item">
-          <span>Trace AQ (Annual)</span>
-          <span className="order-price">$299.00</span>
+    <aside className="aside">
+      <section className="card cardLg orderCard">
+        <div className="orderHeader">
+          <h3 className="summaryTitle">Order Summary</h3>
+          <span className="currencyChip" aria-label="Currency">
+            <span role="img" aria-label="us-flag">🇺🇸</span>
+            <span>USD</span>
+          </span>
         </div>
-        <div className="order-divider" />
-        <div className="order-item">
-          <span>Subtotal</span>
-          <span>$299.00</span>
+
+        <button
+          type="button"
+          className="rowTitle orderRowBtn"
+          aria-expanded={showDesc}
+          onClick={() => setShowDesc(v => !v)}
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="orderRowLabel">Product Description</div>
+          <i
+            className="fa fa-chevron-down"
+            aria-hidden="true"
+            style={{
+              transform: showDesc ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s',
+            }}
+          />
+        </button>
+        {showDesc && (
+          <div style={{ margin: '12px 0', textAlign: 'center' }}>
+            <img
+              src="/images/PD.png"
+              alt="Product Description"
+              style={{
+                maxWidth: '100%',
+                borderRadius: 12,
+                boxShadow: '0 2px 8px rgba(16,24,40,0.08)',
+              }}
+            />
+          </div>
+        )}
+
+        <div className="divider" />
+
+        <div className="summaryProduct">
+          <div className="productTitle">{productName}</div>
+          <div className="productPrice">{money(unitPrice, currency)}</div>
         </div>
-        <div className="order-item">
-          <span>Tax</span>
-          <span>$0.00</span>
+
+        <div className="kvLines">
+          <div className="kv">
+            <span className="k">1 user</span>
+          </div>
+          <div className="kv">
+            <span className="k">Aero Monthly Plan</span>
+            <span className="v">{money(unitPrice, currency)} per seat</span>
+          </div>
+          <div className="kv">
+            <span className="k">Taxes</span>
+            <span className="v">Calculated at checkout</span>
+          </div>
         </div>
-        <div className="order-divider" />
-        <div className="order-item order-total">
-          <span>Total</span>
-          <span className="order-price">$299.00</span>
+
+        <div className="promoBadge">LIMITED-TIME INTRODUCTORY PRICING FOR EVERYONE</div>
+
+        <div className="couponRow">
+          <input
+            className="input"
+            style={{ width: '300px', fontSize: 13, padding: '8px 8px' }}
+            placeholder="Coupon code"
+            value={coupon}
+            onChange={e => setCoupon(e.target.value)}
+            aria-label="Coupon code"
+          />
+          <button type="button" className="applyBtn">
+            Apply
+          </button>
         </div>
-      </div>
-    </div>
+
+        <div className="summaryLine totalLine" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <strong>Total due today</strong>
+          <strong>{money(unitPrice * seats, currency)}</strong>
+        </div>
+
+        <button type="button" className="btnSubscribe" onClick={() => window.location.href = '/success'}>
+          SUBSCRIBE <span className="arrow">›</span>
+        </button>
+      </section>
+    </aside>
   );
-}
+};
+
+export default OrderSummary;

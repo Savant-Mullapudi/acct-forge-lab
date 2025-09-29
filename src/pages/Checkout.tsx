@@ -6,6 +6,7 @@ import PaymentMethodCard from '@/components/Checkout/PaymentMethodCard';
 import OrderSummary from '@/components/Checkout/OrderSummary';
 import CheckoutHeader from '@/components/Checkout/CheckoutHeader';
 import '../styles/checkout.css';
+import 'font-awesome/css/font-awesome.min.css';
 
 type Step = 'signup' | 'address' | 'payment';
 

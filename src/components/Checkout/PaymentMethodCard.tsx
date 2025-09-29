@@ -1,73 +1,72 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 
-interface PaymentMethodCardProps {
-  open: boolean;
-  onToggle: () => void;
-  filled: boolean;
-}
-
-export default function PaymentMethodCard({ open, onToggle, filled }: PaymentMethodCardProps) {
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvv, setCvv] = useState('');
-  const navigate = useNavigate();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cardNumber && expiry && cvv) {
-      // Simulate payment processing
-      setTimeout(() => {
-        navigate('/success?session_id=demo123');
-      }, 1000);
-    }
-  };
+export default function PaymentMethodCard({
+  open,
+  onToggle,
+  filled,
+}: { open: boolean; onToggle: () => void; filled: boolean }) {
+  const [cardNumber, setCardNumber] = React.useState('');
+  const [expiry, setExpiry] = React.useState('');
+  const [cvv, setCvv] = React.useState('');
 
   return (
-    <div className={`card checkout-card ${open ? 'open' : ''}`}>
-      <div className="card-header" onClick={onToggle}>
-        <div className="card-number">3</div>
-        <h3 className="card-title">Payment Method</h3>
+    <section className={`card ${open ? 'is-open' : ''}`}>
+      <div className="cardBody">
+        <div className="rowTitle" style={{ marginBottom: 10 }}>
+          <h3 className="sectionTitle">Payment Method</h3>
+          {!open && filled ? (
+            <a className="btnGhost" onClick={onToggle} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+              Edit
+              <i className="fa fa-chevron-down" aria-hidden="true" style={{ fontSize: 10, color: 'grey' }} />
+            </a>
+          ) : null}
+        </div>
+
+        {open && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
+              Enter your payment details.
+            </div>
+            
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div className="field">
+                <input
+                  className="input"
+                  placeholder=" "
+                  aria-label="card number"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value)}
+                />
+                <label className="floating-label">Card number *</label>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="field">
+                  <input
+                    className="input"
+                    placeholder=" "
+                    aria-label="expiry"
+                    value={expiry}
+                    onChange={(e) => setExpiry(e.target.value)}
+                  />
+                  <label className="floating-label">MM/YY *</label>
+                </div>
+
+                <div className="field">
+                  <input
+                    className="input"
+                    placeholder=" "
+                    aria-label="cvv"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value)}
+                  />
+                  <label className="floating-label">CVV *</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      {open && (
-        <form className="card-content" onSubmit={handleSubmit}>
-          <div className="form-field">
-            <label>Card Number *</label>
-            <input
-              type="text"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-              placeholder="1234 5678 9012 3456"
-              required
-            />
-          </div>
-          <div className="form-row">
-            <div className="form-field">
-              <label>Expiry Date *</label>
-              <input
-                type="text"
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-                placeholder="MM/YY"
-                required
-              />
-            </div>
-            <div className="form-field">
-              <label>CVV *</label>
-              <input
-                type="text"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value)}
-                placeholder="123"
-                required
-              />
-            </div>
-          </div>
-          <button type="submit" className="btn-continue btn-payment">
-            Complete Payment
-          </button>
-        </form>
-      )}
-    </div>
+    </section>
   );
 }

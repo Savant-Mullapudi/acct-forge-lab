@@ -1,0 +1,40 @@
+.payment-form {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400; /* normal weight */
+    color: #333;
+  }
+  
+  .payment-form h4 {
+    font-weight: 500; /* slightly bolder for headings */
+    margin: 8px 0;
+  }
+  
+  .payment-form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: inherit;
+  }
+  
+  .payment-form input[aria-label="expiry"],
+  .payment-form input[aria-label="cvc"] {
+    width: 48%;
+  }
+  
+  .payment-form input[aria-label="expiry"] {
+    margin-right: 4%;
+  }
+  
+  .payment-form button {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #0070f3;
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  
