@@ -310,19 +310,6 @@ export default function SignUpCard({
                         <span style={{ fontSize: 16 }}>•</span> Include both uppercase and lowercase characters
                       </li>
                     </ul>
-                    <div style={{ fontWeight: 600, marginBottom: 8, color: '#374151' }}>
-                      Password must not
-                    </div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                      <li style={{ 
-                        color: !hasConsecutive ? '#16a34a' : '#991b1b',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                      }}>
-                        <span style={{ fontSize: 16 }}>•</span> Contain 4 consecutive characters (e.g. &quot;11111&quot;, &quot;12345&quot;, &quot;abcde&quot;, or &quot;qwert&quot;)
-                      </li>
-                    </ul>
                   </div>
                 )}
                 
