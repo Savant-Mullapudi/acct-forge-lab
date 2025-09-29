@@ -1,4 +1,5 @@
 import React from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 type Props = {
   fullName?: string;
@@ -27,6 +28,9 @@ export default function SignUpCard({
   const [agreeTerms, setAgreeTerms] = React.useState(false);
   const [agreePrivacy, setAgreePrivacy] = React.useState(false);
   const [agreeMarketing, setAgreeMarketing] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [showPasswordHints, setShowPasswordHints] = React.useState(false);
 
   const [savedName, setSavedName] = React.useState(fullName);
   const [savedEmail, setSavedEmail] = React.useState(email);
@@ -47,8 +51,17 @@ export default function SignUpCard({
     touched.lastName && lastName.trim() === '' ? 'Last name is required' : '';
   const mailError =
     touched.mail && !emailRegex.test(mail) ? 'Enter a valid email address' : '';
+  // Password validation
+  const hasMinLength = password.length >= 8;
+  const hasLetter = /[a-zA-Z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasUpperAndLower = /[a-z]/.test(password) && /[A-Z]/.test(password);
+  const hasConsecutive = /(.)\1{3}|0123|1234|2345|3456|4567|5678|6789|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz|qwer|wert|erty|rtyu|tyui|yuio|uiop|asdf|sdfg|dfgh|fghj|ghjk|hjkl|zxcv|xcvb|cvbn|vbnm/i.test(password);
+  
+  const passwordValid = hasMinLength && hasLetter && hasNumber && hasUpperAndLower && !hasConsecutive;
+
   const passwordError =
-    touched.password && password.length < 8 ? 'Minimum 8 characters' : '';
+    touched.password && !passwordValid ? 'Password does not meet requirements' : '';
   const confirmError =
     touched.confirm && confirm !== password ? 'Passwords do not match' : '';
   const termsError =
@@ -56,12 +69,12 @@ export default function SignUpCard({
   const privacyError =
     touched.privacy && !agreePrivacy ? 'You must accept auto-renewal' : '';
 
-  const passwordsMatch = password.length >= 8 && password === confirm;
+  const passwordsMatch = passwordValid && password === confirm;
   const requiredFilled =
     firstName.trim() !== '' &&
     lastName.trim() !== '' &&
     emailRegex.test(mail) &&
-    password.length >= 8 &&
+    passwordValid &&
     passwordsMatch &&
     agreeTerms &&
     agreePrivacy;
@@ -191,28 +204,137 @@ export default function SignUpCard({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-              <div className="field">
+              <div className="field" style={{ position: 'relative' }}>
                 <input
                   className={`input ${passwordError ? 'input-error' : ''}`}
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder=" "
                   aria-label="password"
                   aria-invalid={!!passwordError}
-                  aria-describedby="passwordError"
+                  aria-describedby="passwordError passwordHints"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (e.target.value.length > 0) {
+                      setShowPasswordHints(true);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (password.length > 0) {
+                      setShowPasswordHints(true);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched((t) => ({ ...t, password: true }));
+                    setShowPasswordHints(false);
+                  }}
                 />
-                <label className="floating-label">Password (min 8 chars) *</label>
-                {passwordError && (
+                <label className="floating-label">Password *</label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: '#666',
+                  }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+                
+                {showPasswordHints && (
+                  <div
+                    id="passwordHints"
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      marginTop: 8,
+                      padding: 12,
+                      background: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: 8,
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      zIndex: 10,
+                      minWidth: 300,
+                      fontSize: 13,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, marginBottom: 8, color: '#374151' }}>
+                      Password must
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      <li style={{ 
+                        color: hasMinLength ? '#16a34a' : '#991b1b',
+                        marginBottom: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <span style={{ fontSize: 16 }}>•</span> Have at least 8 characters
+                      </li>
+                      <li style={{ 
+                        color: hasLetter ? '#16a34a' : '#991b1b',
+                        marginBottom: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <span style={{ fontSize: 16 }}>•</span> Have at least 1 letter (a, b, c...)
+                      </li>
+                      <li style={{ 
+                        color: hasNumber ? '#16a34a' : '#991b1b',
+                        marginBottom: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <span style={{ fontSize: 16 }}>•</span> Have at least 1 number (1, 2, 3...)
+                      </li>
+                      <li style={{ 
+                        color: hasUpperAndLower ? '#16a34a' : '#991b1b',
+                        marginBottom: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <span style={{ fontSize: 16 }}>•</span> Include both uppercase and lowercase characters
+                      </li>
+                    </ul>
+                    <div style={{ fontWeight: 600, marginBottom: 8, color: '#374151' }}>
+                      Password must not
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      <li style={{ 
+                        color: !hasConsecutive ? '#16a34a' : '#991b1b',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <span style={{ fontSize: 16 }}>•</span> Contain 4 consecutive characters (e.g. &quot;11111&quot;, &quot;12345&quot;, &quot;abcde&quot;, or &quot;qwert&quot;)
+                      </li>
+                    </ul>
+                  </div>
+                )}
+                
+                {passwordError && !showPasswordHints && (
                   <div id="passwordError" className="field-error">{passwordError}</div>
                 )}
               </div>
 
-              <div className="field">
+              <div className="field" style={{ position: 'relative' }}>
                 <input
                   className={`input ${confirmError ? 'input-error' : ''}`}
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder=" "
                   aria-label="confirm password"
                   aria-invalid={!!confirmError}
@@ -222,6 +344,26 @@ export default function SignUpCard({
                   onBlur={() => setTouched((t) => ({ ...t, confirm: true }))}
                 />
                 <label className="floating-label">Confirm password *</label>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: '#666',
+                  }}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
                 {confirmError && (
                   <div id="confirmError" className="field-error">{confirmError}</div>
                 )}
