@@ -22,7 +22,7 @@ const ResearcherDiscountCard: React.FC = () => {
           justifyContent: 'space-between'
         }}
       >
-        <h3 className="sectionTitle" style={{ fontWeight: 600, fontSize: 18, margin: 0, color: '#4285F4', textAlign: 'left' }}>
+        <h3 className="sectionTitle" style={{ fontWeight: 600, fontSize: 16, margin: 0, color: '#4285F4', textAlign: 'left' }}>
           Apply for our exclusive researcher discount
         </h3>
         <i className="fa fa-chevron-down" aria-hidden="true" style={{ fontSize: 14, marginLeft: 8, color: 'grey' }} />
