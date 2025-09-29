@@ -1,5 +1,5 @@
 import React from 'react';
-import logoFullDark from '@/assets/logo-full-dark.png';
+import logoDark from '@/assets/logo-dark.png';
 
 export default function CheckoutHeader() {
   return (
