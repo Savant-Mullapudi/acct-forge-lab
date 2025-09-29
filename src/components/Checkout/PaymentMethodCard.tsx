@@ -24,11 +24,19 @@ export default function PaymentMethodCard({
 
         {open && (
           <div style={{ marginTop: 8 }}>
-            <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
-              Enter your payment details.
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+              We accept major credit and debit cards
             </div>
             
-            <div style={{ display: 'grid', gap: 10 }}>
+            {/* Payment method icons */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
+              <i className="fa fa-cc-visa" style={{ fontSize: 32, color: '#1434CB' }} aria-label="Visa" />
+              <i className="fa fa-cc-mastercard" style={{ fontSize: 32, color: '#EB001B' }} aria-label="Mastercard" />
+              <i className="fa fa-cc-amex" style={{ fontSize: 32, color: '#006FCF' }} aria-label="American Express" />
+              <i className="fa fa-cc-discover" style={{ fontSize: 32, color: '#FF6000' }} aria-label="Discover" />
+            </div>
+            
+            <div style={{ display: 'grid', gap: 12 }}>
               <div className="field">
                 <input
                   className="input"
@@ -36,11 +44,12 @@ export default function PaymentMethodCard({
                   aria-label="card number"
                   value={cardNumber}
                   onChange={(e) => setCardNumber(e.target.value)}
+                  maxLength={19}
                 />
                 <label className="floating-label">Card number *</label>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="field">
                   <input
                     className="input"
@@ -48,6 +57,7 @@ export default function PaymentMethodCard({
                     aria-label="expiry"
                     value={expiry}
                     onChange={(e) => setExpiry(e.target.value)}
+                    maxLength={5}
                   />
                   <label className="floating-label">MM/YY *</label>
                 </div>
@@ -57,8 +67,10 @@ export default function PaymentMethodCard({
                     className="input"
                     placeholder=" "
                     aria-label="cvv"
+                    type="password"
                     value={cvv}
                     onChange={(e) => setCvv(e.target.value)}
+                    maxLength={4}
                   />
                   <label className="floating-label">CVV *</label>
                 </div>
