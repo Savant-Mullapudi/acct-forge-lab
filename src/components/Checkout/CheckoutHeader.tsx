@@ -18,10 +18,9 @@ export default function CheckoutHeader() {
         </div>
 
         <div className="secure" aria-label="Secure checkout">
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 15a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="currentColor"/>
-            <path d="M17 8h-1V6a4 4 0 10-8 0v2H7a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1zM9 6a3 3 0 116 0v2H9V6z" fill="currentColor"/>
-          </svg>
+          <span className="material-symbols-outlined" aria-hidden="true">
+            lock
+          </span>
           <span>Secure Checkout</span>
         </div>
       </div>
@@ -58,13 +57,13 @@ export default function CheckoutHeader() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 6px 12px;
-          border-radius: 20px;
-          border: 1px solid #e6e6e6;
-          color: #111;
+          color: #515151;
           font-size: 13px;
-          background: #f9fafb;
           user-select: none;
+        }
+        
+        .secure .material-symbols-outlined {
+          font-size: 16px;
         }
 
         @media (max-width: 900px) {
