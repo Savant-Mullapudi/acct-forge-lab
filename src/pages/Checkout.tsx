@@ -48,7 +48,9 @@ export default function Checkout() {
               filled={paymentFilled}
             />
           </div>
-          <OrderSummary />
+          <aside className="aside">
+            <OrderSummary />
+          </aside>
         </div>
       </div>
     </>

@@ -16,23 +16,25 @@
   padding: 16px 20px 40px;
 }
 
-/* ====== Main two-column layout ====== */
+/* ====== Main two-column layout (Zoom-style) ====== */
 .grid {
-  display: flex;
-  align-items: flex-start;
-  gap: 32px;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 40px;
+  align-items: start;
 }
 
 .leftCol {
-  flex: 1 1 0;
-  margin-left: -10px;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .aside {
-  flex: 0 0 auto;
+  position: sticky;
+  top: 20px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -68,9 +70,7 @@
 
 /* ====== Order Summary (right card) ====== */
 .card.cardLg.orderCard {
-  width: clamp(var(--order-min), 34vw, var(--order-max));
-  max-width: var(--order-max);
-  min-width: var(--order-min);
+  width: 100%;
   padding: 24px 32px;
   display: flex;
   flex-direction: column;
@@ -212,22 +212,20 @@
     max-width: 100vw;
   }
   .grid {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: 20px;
   }
   .leftCol {
-    margin-left: 0;
-    padding-left: 0;
     gap: 8px;
   }
   .aside {
+    position: relative;
+    top: 0;
     width: 100%;
     align-items: stretch;
   }
   .card.cardLg.orderCard {
     width: 100%;
-    max-width: 100%;
-    min-width: 0;
     padding: 16px 12px;
     gap: 12px;
   }

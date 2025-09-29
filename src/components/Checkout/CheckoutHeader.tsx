@@ -1,4 +1,5 @@
 import React from 'react';
+import logoFullDark from '@/assets/logo-full-dark.png';
 
 export default function CheckoutHeader() {
   return (
@@ -6,10 +7,10 @@ export default function CheckoutHeader() {
       <div className="inner">
         <div className="logo-wrap">
           <img
-            src="/images/TraceAQ_Logo_Dark.png"
-            alt="TraceAQ logo"
+            src={logoFullDark}
+            alt="TraceAQ Aero"
             className="logo"
-            width={160}
+            width={240}
             height={45}
             loading="eager"
             decoding="async"
