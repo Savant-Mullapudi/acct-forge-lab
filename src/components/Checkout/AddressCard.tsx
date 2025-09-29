@@ -1,12 +1,13 @@
 import React from 'react';
+import { Country, State } from 'country-state-city';
 
 type Address = {
   line1?: string;
   line2?: string;
   city?: string;
-  state?: string;
+  state?: string;        // store ISO code (e.g., 'CA', 'MH', etc.)
   postalCode?: string;
-  country?: string;
+  country?: string;      // store ISO code (e.g., 'US', 'CA', 'IN')
 };
 
 type Props = {
@@ -16,10 +17,6 @@ type Props = {
   onToggle: () => void;
   onContinue: () => void;
 };
-
-const zipUS = /^\d{5}(-\d{4})?$/;
-const zipCA = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/;
-const stateUS = /^[A-Z]{2}$/;
 
 export default function AddressCard({
   value = {},
@@ -39,6 +36,40 @@ export default function AddressCard({
     country: false,
   });
 
+  // --- Country/State Lists ---
+  const countries = React.useMemo(() => Country.getAllCountries(), []);
+  const states = React.useMemo(
+    () => (addr.country ? State.getStatesOfCountry(addr.country) : []),
+    [addr.country]
+  );
+
+  // Helpers to get display names from codes (for preview when closed)
+  const countryName = React.useMemo(() => {
+    if (!addr.country) return '';
+    const c = countries.find(c => c.isoCode === addr.country);
+    return c?.name ?? '';
+  }, [addr.country, countries]);
+
+  const savedCountryName = React.useMemo(() => {
+    if (!saved.country) return '';
+    const c = countries.find(c => c.isoCode === saved.country);
+    return c?.name ?? '';
+  }, [saved.country, countries]);
+
+  const stateName = React.useMemo(() => {
+    if (!addr.country || !addr.state) return '';
+    const s = states.find(s => s.isoCode === addr.state);
+    return s?.name ?? '';
+  }, [addr.country, addr.state, states]);
+
+  const savedStateName = React.useMemo(() => {
+    if (!saved.country || !saved.state) return '';
+    const list = State.getStatesOfCountry(saved.country);
+    const s = list.find(s => s.isoCode === saved.state);
+    return s?.name ?? '';
+  }, [saved.country, saved.state]);
+
+  // --- Validation (keep your style) ---
   const update = (k: keyof Address, v: string) => {
     const next = { ...addr, [k]: v };
     setAddr(next);
@@ -51,10 +82,6 @@ export default function AddressCard({
   const cityError =
     touched.city && !addr.city?.trim() ? 'City is required' : '';
 
-  const countryValue = (addr.country || '').trim();
-  const isUS = countryValue === 'United States';
-  const isCA = countryValue === 'Canada';
-
   const stateError = (() => {
     if (!touched.state) return '';
     const v = (addr.state || '').trim();
@@ -66,26 +93,15 @@ export default function AddressCard({
     if (!touched.postalCode) return '';
     const v = (addr.postalCode || '').trim();
     if (!v) return 'Postal code is required';
+    // Optional: keep numeric-only while you’re early. Many countries have letters, so
+    // if you want global correctness, remove the numeric-only rule and just required.
+    // return '';
     if (!/^\d+$/.test(v)) return 'Only numbers allowed';
     return '';
   })();
 
   const countryError =
-    touched.country && !countryValue ? 'Country is required' : '';
-
-  const countries = ['United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France', 'Japan', 'India', 'Other'];
-  
-  const usStates = [
-    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
-  ];
-  
-  const caProvinces = ['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'];
-  
-  const stateOptions = isUS ? usStates : isCA ? caProvinces : [];
+    touched.country && !(addr.country || '').trim() ? 'Country is required' : '';
 
   const noErrors =
     !line1Error && !cityError && !stateError && !postalError && !countryError;
@@ -95,7 +111,7 @@ export default function AddressCard({
     (addr.city ?? '').trim() !== '' &&
     (addr.state ?? '').trim() !== '' &&
     (addr.postalCode ?? '').trim() !== '' &&
-    countryValue !== '' &&
+    (addr.country ?? '').trim() !== '' &&
     noErrors;
 
   const markAllTouched = () =>
@@ -110,6 +126,12 @@ export default function AddressCard({
     onContinue();
   }
 
+  // Reset state when country changes
+  const handleCountryChange = (iso: string) => {
+    update('country', iso);
+    update('state', ''); // clear state/province
+  };
+
   return (
     <section className={`card ${open ? 'is-open' : ''}`}>
       <div className="cardBody">
@@ -123,12 +145,13 @@ export default function AddressCard({
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
               >
                 Edit
-                <i className="fa fa-chevron-down" aria-hidden="true" style={{ fontSize: 10, color: 'grey' }} />
+                <i className="fa fa-chevron-right" aria-hidden="true" style={{ fontSize: 10, color: 'grey' }} />
               </a>
             ) : null}
           </div>
         </div>
 
+        {/* Collapsed preview */}
         {!open && (
           <div style={{ marginBottom: 4 }}>
             <div style={{ fontSize: 14 }}>
@@ -136,12 +159,13 @@ export default function AddressCard({
               {saved.line2 ? `, ${saved.line2}` : ''}
             </div>
             <div style={{ fontSize: 14, marginTop: 6 }}>
-              {saved.city}{saved.city && ','} {saved.state} {saved.postalCode}
+              {saved.city}{saved.city && ','} {savedStateName} {saved.postalCode}
             </div>
-            <div style={{ fontSize: 14, marginTop: 6 }}>{saved.country}</div>
+            <div style={{ fontSize: 14, marginTop: 6 }}>{savedCountryName}</div>
           </div>
         )}
 
+        {/* Expanded form */}
         {open && (
           <div style={{ marginTop: 8 }}>
             <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
@@ -149,6 +173,7 @@ export default function AddressCard({
             </div>
 
             <div style={{ display: 'grid', gap: 10 }}>
+              {/* Street */}
               <div className="field">
                 <input
                   className={`input ${line1Error ? 'input-error' : ''}`}
@@ -164,6 +189,7 @@ export default function AddressCard({
                 {line1Error && <div id="line1Error" className="field-error">{line1Error}</div>}
               </div>
 
+              {/* Apt/suite */}
               <div className="field">
                 <input
                   className="input"
@@ -175,7 +201,9 @@ export default function AddressCard({
                 <label className="floating-label">Apt, suite, etc. (optional)</label>
               </div>
 
+              {/* City / State / Postal */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 140px', gap: 10 }}>
+                {/* City */}
                 <div className="field">
                   <input
                     className={`input ${cityError ? 'input-error' : ''}`}
@@ -191,6 +219,7 @@ export default function AddressCard({
                   {cityError && <div id="cityError" className="field-error">{cityError}</div>}
                 </div>
 
+                {/* State/Province */}
                 <div className="field">
                   <select
                     className={`input ${stateError ? 'input-error' : ''}`}
@@ -200,29 +229,36 @@ export default function AddressCard({
                     value={addr.state ?? ''}
                     onChange={e => update('state', e.target.value)}
                     onBlur={() => setTouched(t => ({ ...t, state: true }))}
-                    disabled={!isUS && !isCA}
+                    disabled={!addr.country}
                     style={{
-                      paddingTop: 18,
-                      paddingBottom: 8,
-                      paddingRight: 32,
+                      paddingTop: 18, paddingBottom: 8, paddingRight: 32,
                       backgroundColor: '#fff',
-                      cursor: (!isUS && !isCA) ? 'not-allowed' : 'pointer',
+                      cursor: !addr.country ? 'not-allowed' : 'pointer',
                       appearance: 'none',
-                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
+                      backgroundImage:
+                        'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
                       backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'right 8px center',
-                      backgroundSize: '16px'
+                      backgroundSize: '16px',
                     }}
                   >
                     <option value=""></option>
-                    {stateOptions.map(s => (
-                      <option key={s} value={s}>{s}</option>
+                    {states.map(s => (
+                      <option key={`${s.countryCode}-${s.isoCode}`} value={s.isoCode}>
+                        {s.name}
+                      </option>
                     ))}
                   </select>
-                  <label className="floating-label" style={{ top: addr.state ? 6 : 18, pointerEvents: 'none' }}>State/Prov. *</label>
+                  <label
+                    className="floating-label"
+                    style={{ top: addr.state ? 6 : 18, pointerEvents: 'none' }}
+                  >
+                    State/Prov. *
+                  </label>
                   {stateError && <div id="stateError" className="field-error">{stateError}</div>}
                 </div>
 
+                {/* Postal */}
                 <div className="field">
                   <input
                     className={`input ${postalError ? 'input-error' : ''}`}
@@ -232,6 +268,8 @@ export default function AddressCard({
                     aria-describedby="postalError"
                     value={addr.postalCode ?? ''}
                     onChange={e => {
+                      // If you want *global* correctness, remove numeric-only filter:
+                      // update('postalCode', e.target.value);
                       const val = e.target.value.replace(/\D/g, '');
                       update('postalCode', val);
                     }}
@@ -242,6 +280,7 @@ export default function AddressCard({
                 </div>
               </div>
 
+              {/* Country */}
               <div className="field">
                 <select
                   className={`input ${countryError ? 'input-error' : ''}`}
@@ -249,30 +288,33 @@ export default function AddressCard({
                   aria-invalid={!!countryError}
                   aria-describedby="countryError"
                   value={addr.country ?? ''}
-                  onChange={e => {
-                    update('country', e.target.value);
-                    update('state', '');
-                  }}
+                  onChange={e => handleCountryChange(e.target.value)}
                   onBlur={() => setTouched(t => ({ ...t, country: true }))}
                   style={{
-                    paddingTop: 18,
-                    paddingBottom: 8,
-                    paddingRight: 32,
+                    paddingTop: 18, paddingBottom: 8, paddingRight: 32,
                     backgroundColor: '#fff',
                     cursor: 'pointer',
                     appearance: 'none',
-                    backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
+                    backgroundImage:
+                      'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'right 8px center',
-                    backgroundSize: '16px'
+                    backgroundSize: '16px',
                   }}
                 >
                   <option value=""></option>
                   {countries.map(c => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c.isoCode} value={c.isoCode}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
-                <label className="floating-label" style={{ top: addr.country ? 6 : 18, pointerEvents: 'none' }}>Country *</label>
+                <label
+                  className="floating-label"
+                  style={{ top: addr.country ? 6 : 18, pointerEvents: 'none' }}
+                >
+                  Country *
+                </label>
                 {countryError && <div id="countryError" className="field-error">{countryError}</div>}
               </div>
 
@@ -309,6 +351,11 @@ export default function AddressCard({
                 >
                   Cancel
                 </a>
+              </div>
+
+              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                {/* Optional: show selected names for debugging */}
+                {/* Country: {countryName} — State: {stateName} */}
               </div>
             </div>
           </div>
