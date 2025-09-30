@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 type Props = {
   fullName?: string;
@@ -92,14 +93,40 @@ export default function SignUpCard({
     }));
   }
 
-  function handleContinue() {
+  async function handleContinue() {
     if (!requiredFilled) {
       markAllTouched();
       return;
     }
-    setSavedName(`${firstName.trim()} ${lastName.trim()}`);
-    setSavedEmail(mail.trim());
-    onContinue();
+
+    try {
+      console.log('Starting user signup...');
+      const { data, error } = await supabase.auth.signUp({
+        email: mail.trim(),
+        password: password,
+        options: {
+          data: {
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          },
+          emailRedirectTo: `${window.location.origin}/checkout`,
+        },
+      });
+
+      if (error) {
+        console.error('Signup error:', error);
+        alert(`Signup failed: ${error.message}`);
+        return;
+      }
+
+      console.log('Signup successful:', data);
+      setSavedName(`${firstName.trim()} ${lastName.trim()}`);
+      setSavedEmail(mail.trim());
+      onContinue();
+    } catch (error) {
+      console.error('Unexpected error during signup:', error);
+      alert(`Signup error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   return (
