@@ -13,15 +13,53 @@ export default function PaymentMethodCard({
   const [cardholderName, setCardholderName] = React.useState('');
   const navigate = useNavigate();
 
+  // Format card number with spaces every 4 digits
+  const formatCardNumber = (value: string) => {
+    const cleaned = value.replace(/\s/g, '');
+    const match = cleaned.match(/.{1,4}/g);
+    return match ? match.join(' ') : cleaned;
+  };
+
+  // Format expiry as MM/YY
+  const formatExpiry = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length >= 2) {
+      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
+    }
+    return cleaned;
+  };
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\s/g, '');
+    if (/^\d*$/.test(value) && value.length <= 16) {
+      setCardNumber(formatCardNumber(value));
+    }
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 4) {
+      setExpiry(formatExpiry(value));
+    }
+  };
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value) && value.length <= 4) {
+      setCvv(value);
+    }
+  };
+
   const handleReviewConfirm = () => {
     onReviewConfirm?.();
   };
 
-  // Validate all payment fields are filled
-  const isFormValid = cardNumber.trim() !== '' && 
-                      expiry.trim() !== '' && 
-                      cvv.trim() !== '' && 
-                      cardholderName.trim() !== '';
+  // Validate all payment fields are filled and properly formatted
+  const isFormValid = 
+    cardNumber.replace(/\s/g, '').length === 16 && 
+    expiry.length === 5 && 
+    cvv.length >= 3 && 
+    cardholderName.trim() !== '';
 
   return (
     <section className={`card ${open ? 'is-open' : ''}`}>
@@ -84,9 +122,10 @@ export default function PaymentMethodCard({
                   placeholder=" "
                   aria-label="card number"
                   value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
+                  onChange={handleCardNumberChange}
                   maxLength={19}
                   style={{ paddingRight: 150 }}
+                  data-testid="input-card-number"
                 />
                 <label className="floating-label">1234 1234 1234 1234</label>
                 <div style={{ 
@@ -113,8 +152,9 @@ export default function PaymentMethodCard({
                     placeholder=" "
                     aria-label="expiry"
                     value={expiry}
-                    onChange={(e) => setExpiry(e.target.value)}
+                    onChange={handleExpiryChange}
                     maxLength={5}
+                    data-testid="input-expiry"
                   />
                   <label className="floating-label">MM / YY</label>
                 </div>
@@ -126,9 +166,10 @@ export default function PaymentMethodCard({
                     aria-label="cvc"
                     type="password"
                     value={cvv}
-                    onChange={(e) => setCvv(e.target.value)}
+                    onChange={handleCvvChange}
                     maxLength={4}
                     style={{ paddingRight: 40 }}
+                    data-testid="input-cvv"
                   />
                   <label className="floating-label">CVC</label>
                   <i className="fa fa-lock" 
@@ -157,6 +198,7 @@ export default function PaymentMethodCard({
                   aria-label="cardholder name"
                   value={cardholderName}
                   onChange={(e) => setCardholderName(e.target.value)}
+                  data-testid="input-cardholder-name"
                 />
                 <label className="floating-label">Full name on card</label>
               </div>
@@ -176,14 +218,15 @@ export default function PaymentMethodCard({
             <button 
               onClick={handleReviewConfirm}
               disabled={!isFormValid}
+              data-testid="button-review-confirm"
               style={{
                 width: '100%',
                 marginTop: 20,
                 padding: '14px 18px',
                 border: 'none',
                 borderRadius: '8px',
-                background: isFormValid ? '#00FF5E' : '#d1d5db',
-                color: isFormValid ? '#000' : '#9ca3af',
+                background: isFormValid ? '#000D94' : '#d1d5db',
+                color: isFormValid ? '#fff' : '#9ca3af',
                 fontWeight: 600,
                 fontSize: 15,
                 letterSpacing: '0.5px',
@@ -196,14 +239,14 @@ export default function PaymentMethodCard({
                 gap: 8,
               }}
               onMouseOver={(e) => {
-                if (isFormValid) e.currentTarget.style.background = '#00E654';
+                if (isFormValid) e.currentTarget.style.background = '#001480';
               }}
               onMouseOut={(e) => {
-                if (isFormValid) e.currentTarget.style.background = '#00FF5E';
+                if (isFormValid) e.currentTarget.style.background = '#000D94';
               }}
             >
               REVIEW & CONFIRM
-              {isFormValid && <i className="fa fa-arrow-right" style={{ fontSize: 16, color: '#000D94' }} />}
+              {isFormValid && <i className="fa fa-arrow-right" style={{ fontSize: 16, color: '#fff' }} />}
             </button>
           </div>
         )}

@@ -112,6 +112,7 @@ const OrderSummary: React.FC<Props> = ({
           className="btnSubscribe" 
           onClick={() => window.location.href = '/success'}
           disabled={!subscribeEnabled}
+          data-testid="button-subscribe"
           style={{
             background: subscribeEnabled ? '#00FF5E' : '#d1d5db',
             color: subscribeEnabled ? '#000' : '#9ca3af',
