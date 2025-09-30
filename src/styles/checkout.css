@@ -203,13 +203,9 @@
   background: #fff;
   font-size: 14px;
   outline: none;
-  transition: border-color .2s, box-shadow .2s, text-align .18s;
+  transition: border-color .2s, box-shadow .2s;
   font-family: inherit;
   color: #111;
-  text-align: center;
-}
-.field .input:not(:placeholder-shown) {
-  text-align: left;
 }
 .field .input:hover { 
   border-color: #9ca3af;
@@ -217,18 +213,15 @@
 .field .input:focus { 
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-  text-align: left;
 }
 .field .floating-label {
-  position: absolute; left: 50%; top: 50%; font-size: 14px; color: #6b7280;
-  pointer-events: none; transition: all .18s;
+  position: absolute; left: 12px; top: 18px; font-size: 14px; color: #6b7280;
+  pointer-events: none; transition: top .18s, font-size .18s, color .18s;
   background: #fff; padding: 0 4px;
-  transform: translate(-50%, -50%);
 }
 .field .input:focus + .floating-label,
 .field .input:not(:placeholder-shown) + .floating-label {
-  top: 6px; left: 12px; font-size: 11px; color: #6b7280;
-  transform: translate(0, 0);
+  top: 6px; font-size: 11px; color: #6b7280;
 }
 .field .input:focus + .floating-label { color: #2563eb; }
 
