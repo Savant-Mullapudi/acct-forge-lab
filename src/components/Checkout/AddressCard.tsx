@@ -281,12 +281,7 @@ export default function AddressCard({
                     aria-invalid={!!postalError}
                     aria-describedby="postalError"
                     value={addr.postalCode ?? ''}
-                    onChange={e => {
-                      const value = e.target.value;
-                      if (value === '' || /^[\d\s-]+$/.test(value)) {
-                        update('postalCode', value);
-                      }
-                    }}
+                    onChange={e => update('postalCode', e.target.value)}
                     onBlur={() => setTouched(t => ({ ...t, postalCode: true }))}
                   />
                   <label className="floating-label">Zip/Postal *</label>
