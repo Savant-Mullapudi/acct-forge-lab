@@ -77,11 +77,9 @@ export default function Login() {
         )}
 
         <form className="lp-form lp-form-grow" onSubmit={onSubmit} noValidate>
-          <div
-            className={`field lp-float ${tEmail && emailError ? "lp-field-error" : ""}`}
-          >
+          <div className="field">
             <input
-              className="input lp-input"
+              className={`input ${tEmail && emailError ? "input-error" : ""}`}
               type="email"
               placeholder=" "
               autoComplete="email"
@@ -93,21 +91,19 @@ export default function Login() {
               data-testid="input-email"
               required
             />
-            <label className="floating-label lp-floating-label">
+            <label className="floating-label">
               Email address <span className="lp-req">*</span>
             </label>
             {tEmail && emailError && (
-              <div id="loginEmailErr" className="field-error lp-field-help" data-testid="text-email-error">
+              <div id="loginEmailErr" className="field-error" data-testid="text-email-error">
                 {emailError}
               </div>
             )}
           </div>
 
-          <div
-            className={`field lp-field-password lp-float ${tPwd && pwdError ? "lp-field-error" : ""}`}
-          >
+          <div className="field lp-field-password">
             <input
-              className="input lp-input lp-input-password"
+              className={`input ${tPwd && pwdError ? "input-error" : ""}`}
               type={showPwd ? "text" : "password"}
               placeholder=" "
               autoComplete="current-password"
@@ -119,7 +115,7 @@ export default function Login() {
               data-testid="input-password"
               required
             />
-            <label className="floating-label lp-floating-label">
+            <label className="floating-label">
               Password <span className="lp-req">*</span>
             </label>
 
@@ -167,7 +163,7 @@ export default function Login() {
             </button>
 
             {tPwd && pwdError && (
-              <div id="loginPwdErr" className="field-error lp-field-help" data-testid="text-password-error">
+              <div id="loginPwdErr" className="field-error" data-testid="text-password-error">
                 {pwdError}
               </div>
             )}
@@ -234,6 +230,11 @@ export default function Login() {
       </div>
 
       <div className="lp-col lp-col-art" aria-hidden>
+        <img
+          src="src/assets/login-background.png"
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       </div>
     </div>
   );
