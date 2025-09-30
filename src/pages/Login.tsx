@@ -1,10 +1,15 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import "../styles/login.css";
 
 export default function Login() {
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,6 +17,20 @@ export default function Login() {
 
   const [tEmail, setTEmail] = useState(false);
   const [tPwd, setTPwd] = useState(false);
+
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
   const emailError = !emailValid(email)
@@ -29,13 +48,51 @@ export default function Login() {
       return;
     }
 
+    if (isSignUp && pwd.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
+
     try {
-      // TODO: call your real login endpoint
-      throw new Error("Invalid email and password combination");
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password: pwd,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Account created!",
+          description: "You've been automatically logged in.",
+        });
+        navigate('/');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password: pwd,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully logged in.",
+        });
+        navigate('/');
+      }
     } catch (err: any) {
-      setError(err?.message || "Login failed");
+      setError(err?.message || (isSignUp ? "Sign up failed" : "Login failed"));
     } finally {
       setLoading(false);
     }
@@ -53,7 +110,9 @@ export default function Login() {
           />
         </div>
 
-        <h1 className="lp-title lp-title-center">Log in to your account</h1>
+        <h1 className="lp-title lp-title-center">
+          {isSignUp ? "Create your account" : "Log in to your account"}
+        </h1>
 
         {error && (
           <div
@@ -81,6 +140,39 @@ export default function Login() {
         )}
 
         <form className="lp-form lp-form-grow" onSubmit={onSubmit} noValidate>
+          {isSignUp && (
+            <div className="lp-row-between" style={{ gap: "12px", marginBottom: "16px" }}>
+              <div className="field" style={{ flex: 1 }}>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder=" "
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required={isSignUp}
+                />
+                <label className="floating-label">
+                  First Name <span className="lp-req">*</span>
+                </label>
+              </div>
+              <div className="field" style={{ flex: 1 }}>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder=" "
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required={isSignUp}
+                />
+                <label className="floating-label">
+                  Last Name <span className="lp-req">*</span>
+                </label>
+              </div>
+            </div>
+          )}
+
           <div className="field">
             <input
               className={`input ${tEmail && emailError ? "input-error" : ""}`}
@@ -208,14 +300,25 @@ export default function Login() {
             disabled={loading}
             data-testid="button-login"
           >
-            {loading ? "LOGGING IN…" : "LOG IN"}
+            {loading ? (isSignUp ? "SIGNING UP…" : "LOGGING IN…") : (isSignUp ? "SIGN UP" : "LOG IN")}
           </button>
 
           <p className="lp-small lp-center">
-            Don't have an account?{" "}
-            <Link to="/checkout" className="lp-link" data-testid="link-signup">
-              Sign up
-            </Link>
+            {isSignUp ? "Already have an account? " : "Don't have an account? "}
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError(null);
+                setTEmail(false);
+                setTPwd(false);
+              }}
+              className="lp-link"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+              data-testid="link-toggle-mode"
+            >
+              {isSignUp ? "Log in" : "Sign up"}
+            </button>
           </p>
         </form>
 
