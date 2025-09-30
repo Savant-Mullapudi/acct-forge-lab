@@ -31,13 +31,13 @@ serve(async (req) => {
       throw new Error("User not authenticated");
     }
 
-    const { priceId, paymentMethodId } = await req.json();
+    const { priceId } = await req.json();
 
-    if (!priceId || !paymentMethodId) {
-      throw new Error("Missing required parameters: priceId and paymentMethodId");
+    if (!priceId) {
+      throw new Error("Missing required parameter: priceId");
     }
 
-    console.log("Creating payment for user:", user.email, "with price:", priceId);
+    console.log("Creating payment intent for user:", user.email, "with price:", priceId);
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -54,66 +54,43 @@ serve(async (req) => {
       // Create new customer
       const customer = await stripe.customers.create({
         email: user.email,
-        payment_method: paymentMethodId,
-        invoice_settings: {
-          default_payment_method: paymentMethodId,
-        },
       });
       customerId = customer.id;
       console.log("Created new customer:", customerId);
     }
 
-    // Get the price to determine if it's recurring or one-time
+    // Get the price to determine amount and currency
     const price = await stripe.prices.retrieve(priceId);
-    console.log("Price type:", price.type);
+    console.log("Price details:", price.type, price.unit_amount, price.currency);
 
-    if (price.type === "recurring") {
-      // Create subscription
-      const subscription = await stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: priceId }],
-        default_payment_method: paymentMethodId,
-        expand: ['latest_invoice.payment_intent'],
-      });
+    // Create payment intent with automatic payment methods enabled
+    // This supports credit cards, Cash App Pay, Klarna, Amazon Pay, and more
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: price.unit_amount || 0,
+      currency: price.currency,
+      customer: customerId,
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'always',
+      },
+      metadata: {
+        priceId: priceId,
+        userId: user.id,
+        userEmail: user.email,
+      },
+    });
 
-      console.log("Created subscription:", subscription.id);
+    console.log("Created payment intent:", paymentIntent.id);
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          subscriptionId: subscription.id,
-          clientSecret: (subscription.latest_invoice as any)?.payment_intent?.client_secret,
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
-    } else {
-      // Create one-time payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: price.unit_amount || 0,
-        currency: price.currency,
-        customer: customerId,
-        payment_method: paymentMethodId,
-        confirm: true,
-        return_url: `${req.headers.get("origin")}/success`,
-      });
-
-      console.log("Created payment intent:", paymentIntent.id);
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          paymentIntentId: paymentIntent.id,
-          status: paymentIntent.status,
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        clientSecret: paymentIntent.client_secret,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
     console.error("Error in create-payment-intent:", error);
     return new Response(

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { stripePromise } from '@/lib/stripe';
+import { supabase } from "@/integrations/supabase/client";
 import ResearcherDiscountCard from '@/components/Checkout/ResearcherDiscountCard';
 import SignUpCard from '@/components/Checkout/SignUpCard';
 import AddressCard from '@/components/Checkout/AddressCard';
@@ -18,6 +19,48 @@ export default function Checkout() {
   const [addressFilled, setAddressFilled] = React.useState(false);
   const [paymentFilled, setPaymentFilled] = React.useState(false);
   const [reviewConfirmed, setReviewConfirmed] = React.useState(false);
+  const [clientSecret, setClientSecret] = React.useState<string | null>(null);
+  const [isLoadingPayment, setIsLoadingPayment] = React.useState(false);
+
+  const handlePaymentStepOpen = async () => {
+    setAddressFilled(true);
+    setStep('payment');
+    
+    // Create payment intent when payment step opens
+    if (!clientSecret) {
+      setIsLoadingPayment(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.error('No active session');
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+          body: {
+            priceId: 'price_1QoaQw02nFbFPjIgvSiInV80', // Replace with your actual price ID
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error) {
+          console.error('Error creating payment intent:', error);
+          return;
+        }
+
+        if (data?.clientSecret) {
+          setClientSecret(data.clientSecret);
+        }
+      } catch (error) {
+        console.error('Error in handlePaymentStepOpen:', error);
+      } finally {
+        setIsLoadingPayment(false);
+      }
+    }
+  };
 
   return (
     <>
@@ -39,20 +82,44 @@ export default function Checkout() {
             <AddressCard
               open={step === 'address'}
               onToggle={() => setStep('address')}
-              onContinue={() => {
-                setAddressFilled(true);
-                setStep('payment');
-              }}
+              onContinue={handlePaymentStepOpen}
             />
 
-            <Elements stripe={stripePromise}>
-              <PaymentMethodCard
-                open={step === 'payment'}
-                onToggle={() => setStep('payment')}
-                filled={paymentFilled}
-                onReviewConfirm={() => setReviewConfirmed(true)}
-              />
-            </Elements>
+            {/* Only render Payment Element when we have a client secret */}
+            {clientSecret ? (
+              <Elements 
+                stripe={stripePromise}
+                options={{
+                  clientSecret,
+                  appearance: {
+                    theme: 'stripe',
+                    variables: {
+                      colorPrimary: '#000D94',
+                    },
+                  },
+                }}
+              >
+                <PaymentMethodCard
+                  open={step === 'payment'}
+                  onToggle={() => setStep('payment')}
+                  filled={paymentFilled}
+                  onReviewConfirm={() => setReviewConfirmed(true)}
+                />
+              </Elements>
+            ) : (
+              step === 'payment' && (
+                <section className="card is-open">
+                  <div className="cardBody">
+                    <div className="rowTitle" style={{ marginBottom: 10 }}>
+                      <h3 className="sectionTitle">Payment Method</h3>
+                    </div>
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                      {isLoadingPayment ? 'Loading payment options...' : 'Initializing payment...'}
+                    </div>
+                  </div>
+                </section>
+              )
+            )}
           </div>
           <aside className="aside">
             <OrderSummary subscribeEnabled={reviewConfirmed} />
