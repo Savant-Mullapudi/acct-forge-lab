@@ -269,36 +269,30 @@ export default function AddressCard({
                   value={addr.line2 ?? ''}
                   onChange={e => update('line2', e.target.value)}
                 />
-                <label className="floating-label">Apt, suite, etc. (optional)</label>
+                <label className="floating-label">Address line 2 (optional)</label>
               </div>
 
-              <div className="field">
-                <select
-                  className={`input ${countryError ? 'input-error' : ''}`}
-                  aria-label="country"
-                  aria-invalid={!!countryError}
-                  aria-describedby="countryError"
-                  value={addr.country ?? ''}
-                  onChange={e => {
-                    updateCountry(e.target.value);
-                    setTouched(t => ({ ...t, country: true, state: false }));
-                  }}
-                  onBlur={() => setTouched(t => ({ ...t, country: true }))}
-                  style={{
-                    paddingTop: '18px',
-                    paddingBottom: '8px',
-                    color: addr.country ? '#111' : '#9ca3af',
-                  }}
-                >
-                  <option value="" disabled>Select country *</option>
-                  {COUNTRIES.map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
-                {countryError && <div id="countryError" className="field-error">{countryError}</div>}
-              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr 180px', gap: 10 }}>
+                <div className="field">
+                  <input
+                    className={`input ${postalError ? 'input-error' : ''}`}
+                    placeholder=" "
+                    aria-label="postal code"
+                    aria-invalid={!!postalError}
+                    aria-describedby="postalError"
+                    value={addr.postalCode ?? ''}
+                    onChange={e => {
+                      const value = e.target.value;
+                      if (value === '' || /^[\d\s-]+$/.test(value)) {
+                        update('postalCode', value);
+                      }
+                    }}
+                    onBlur={() => setTouched(t => ({ ...t, postalCode: true }))}
+                  />
+                  <label className="floating-label">Zip/Postal *</label>
+                  {postalError && <div id="postalError" className="field-error">{postalError}</div>}
+                </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 140px', gap: 10 }}>
                 <div className="field">
                   <input
                     className={`input ${cityError ? 'input-error' : ''}`}
@@ -333,7 +327,7 @@ export default function AddressCard({
                     }}
                   >
                     <option value="" disabled>
-                      {!addr.country ? 'Select country first' : stateOptions.length === 0 ? 'N/A' : 'Select state *'}
+                      {!addr.country ? 'Select country first' : stateOptions.length === 0 ? 'N/A' : 'State/province *'}
                     </option>
                     {stateOptions.map(state => (
                       <option key={state.code} value={state.code}>{state.name}</option>
@@ -341,26 +335,32 @@ export default function AddressCard({
                   </select>
                   {stateError && <div id="stateError" className="field-error">{stateError}</div>}
                 </div>
+              </div>
 
-                <div className="field">
-                  <input
-                    className={`input ${postalError ? 'input-error' : ''}`}
-                    placeholder=" "
-                    aria-label="postal code"
-                    aria-invalid={!!postalError}
-                    aria-describedby="postalError"
-                    value={addr.postalCode ?? ''}
-                    onChange={e => {
-                      const value = e.target.value;
-                      if (value === '' || /^[\d\s-]+$/.test(value)) {
-                        update('postalCode', value);
-                      }
-                    }}
-                    onBlur={() => setTouched(t => ({ ...t, postalCode: true }))}
-                  />
-                  <label className="floating-label">Postal code *</label>
-                  {postalError && <div id="postalError" className="field-error">{postalError}</div>}
-                </div>
+              <div className="field">
+                <select
+                  className={`input ${countryError ? 'input-error' : ''}`}
+                  aria-label="country"
+                  aria-invalid={!!countryError}
+                  aria-describedby="countryError"
+                  value={addr.country ?? ''}
+                  onChange={e => {
+                    updateCountry(e.target.value);
+                    setTouched(t => ({ ...t, country: true, state: false }));
+                  }}
+                  onBlur={() => setTouched(t => ({ ...t, country: true }))}
+                  style={{
+                    paddingTop: '18px',
+                    paddingBottom: '8px',
+                    color: addr.country ? '#111' : '#9ca3af',
+                  }}
+                >
+                  <option value="" disabled>Country/Region *</option>
+                  {COUNTRIES.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+                {countryError && <div id="countryError" className="field-error">{countryError}</div>}
               </div>
 
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 8 }}>
