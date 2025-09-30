@@ -29,14 +29,21 @@ export default function Checkout() {
     // Create payment intent when payment step opens
     if (!clientSecret) {
       setIsLoadingPayment(true);
+      console.log('Starting payment initialization...');
+      
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session check:', session ? 'Found' : 'Not found');
         
         if (!session) {
-          console.error('No active session');
+          console.error('No active session - user needs to sign up first');
+          alert('Please complete the sign up step first');
+          setStep('signup');
+          setIsLoadingPayment(false);
           return;
         }
 
+        console.log('Calling create-payment-intent function...');
         const { data, error } = await supabase.functions.invoke('create-payment-intent', {
           body: {
             priceId: 'price_1SD8wWCaDTRDsxQRp5dKKTIs', // Replace with your actual price ID
@@ -46,16 +53,24 @@ export default function Checkout() {
           },
         });
 
+        console.log('Function response:', { data, error });
+
         if (error) {
           console.error('Error creating payment intent:', error);
+          alert(`Payment initialization failed: ${error.message || 'Unknown error'}`);
           return;
         }
 
         if (data?.clientSecret) {
+          console.log('Payment intent created successfully');
           setClientSecret(data.clientSecret);
+        } else {
+          console.error('No client secret in response');
+          alert('Payment initialization failed: No client secret received');
         }
       } catch (error) {
         console.error('Error in handlePaymentStepOpen:', error);
+        alert(`Payment initialization error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setIsLoadingPayment(false);
       }
