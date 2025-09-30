@@ -107,7 +107,7 @@ const OrderSummary: React.FC<Props> = ({
           <input
             className="input"
             style={{ width: "300px", fontSize: 13, padding: "8px 8px" }}
-            placeholder="Coupon code"
+            placeholder="Promo code"
             value={coupon}
             onChange={(e) => setCoupon(e.target.value)}
             aria-label="Coupon code"
