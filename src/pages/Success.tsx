@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { loadStripe } from '@stripe/stripe-js';
 import '../styles/payment-success.css';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -35,72 +34,34 @@ export default function Success() {
   });
 
   useEffect(() => {
-    const fetchPaymentDetails = async () => {
-      // Get data from sessionStorage
-      const storedAmount = sessionStorage.getItem('payment_amount');
-      const storedCurrency = sessionStorage.getItem('payment_currency');
-      const storedEmail = sessionStorage.getItem('user_email');
+    // Get data from sessionStorage
+    const storedAmount = sessionStorage.getItem('payment_amount');
+    const storedCurrency = sessionStorage.getItem('payment_currency');
+    const storedEmail = sessionStorage.getItem('user_email');
+    const storedPaymentMethod = sessionStorage.getItem('payment_method');
 
-      // Get payment intent from URL if available
-      const paymentIntentId = searchParams.get('payment_intent');
+    // Get payment intent from URL if available
+    const paymentIntent = searchParams.get('payment_intent');
 
-      let paymentMethodDisplay = 'Payment method';
+    if (storedAmount) {
+      const amount = parseFloat(storedAmount);
+      const currency = storedCurrency || 'USD';
+      const formattedAmount = new Intl.NumberFormat('en-US', { 
+        style: 'currency', 
+        currency 
+      }).format(amount);
+      
+      setPaymentData(prev => ({
+        ...prev,
+        amount: formattedAmount,
+        email: storedEmail || prev.email,
+        paymentMethod: storedPaymentMethod || prev.paymentMethod
+      }));
 
-      // Retrieve payment method details from Stripe if payment_intent is available
-      if (paymentIntentId) {
-        try {
-          const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-          if (stripePublishableKey) {
-            const stripe = await loadStripe(stripePublishableKey);
-            if (stripe) {
-              const { paymentIntent } = await stripe.retrievePaymentIntent(paymentIntentId);
-              
-              if (paymentIntent?.payment_method) {
-                // Format payment method display based on type
-                const pm = paymentIntent.payment_method as any;
-                
-                if (pm.card) {
-                  const brand = pm.card.brand.charAt(0).toUpperCase() + pm.card.brand.slice(1);
-                  paymentMethodDisplay = `${brand} **** ${pm.card.last4}`;
-                } else if (pm.type) {
-                  paymentMethodDisplay = pm.type.charAt(0).toUpperCase() + pm.type.slice(1);
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error retrieving payment method:', error);
-        }
-      }
-
-      if (storedAmount) {
-        const amount = parseFloat(storedAmount);
-        const currency = storedCurrency || 'USD';
-        const formattedAmount = new Intl.NumberFormat('en-US', { 
-          style: 'currency', 
-          currency 
-        }).format(amount);
-        
-        setPaymentData({
-          amount: formattedAmount,
-          email: storedEmail || 'checkout@gmail.com',
-          paymentMethod: paymentMethodDisplay
-        });
-
-        // Clear sessionStorage after use
-        sessionStorage.removeItem('payment_amount');
-        sessionStorage.removeItem('payment_currency');
-        sessionStorage.removeItem('user_email');
-      } else {
-        // If no stored amount, at least update payment method
-        setPaymentData(prev => ({
-          ...prev,
-          paymentMethod: paymentMethodDisplay
-        }));
-      }
-    };
-
-    fetchPaymentDetails();
+      // Clear sessionStorage after use
+      sessionStorage.removeItem('payment_amount');
+      sessionStorage.removeItem('payment_currency');
+    }
   }, [searchParams]);
 
   const today = new Date();
