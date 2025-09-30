@@ -3,6 +3,15 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertOrderSchema } from "@shared/schema";
+import Stripe from "stripe";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("Missing required Stripe secret: STRIPE_SECRET_KEY");
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-11-20.acacia",
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware setup
@@ -89,24 +98,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe payment routes (to be implemented with Stripe integration)
-  app.post("/api/payments/create-intent", isAuthenticated, async (req: Request, res: Response) => {
+  // Stripe payment routes
+  app.post("/api/create-payment-intent", isAuthenticated, async (req: any, res: Response) => {
     try {
-      // TODO: Implement Stripe payment intent creation
-      res.status(501).json({ message: "Stripe integration pending" });
-    } catch (error) {
+      const { amount, orderId } = req.body;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          orderId: orderId || "",
+          userId: req.user.claims.sub,
+        },
+      });
+
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
       console.error("Error creating payment intent:", error);
-      res.status(500).json({ message: "Failed to create payment intent" });
+      res.status(500).json({ 
+        message: "Error creating payment intent: " + error.message 
+      });
     }
   });
 
-  app.post("/api/payments/confirm", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/payments/confirm", isAuthenticated, async (req: any, res: Response) => {
     try {
-      // TODO: Implement Stripe payment confirmation
-      res.status(501).json({ message: "Stripe integration pending" });
-    } catch (error) {
+      const { paymentIntentId, orderId } = req.body;
+      
+      if (!paymentIntentId || !orderId) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Retrieve payment intent from Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status === "succeeded") {
+        // Update order status
+        await storage.updateOrderStatus(orderId, "completed", paymentIntentId);
+        res.json({ success: true, order: await storage.getOrderById(orderId) });
+      } else {
+        res.json({ success: false, status: paymentIntent.status });
+      }
+    } catch (error: any) {
       console.error("Error confirming payment:", error);
-      res.status(500).json({ message: "Failed to confirm payment" });
+      res.status(500).json({ 
+        message: "Failed to confirm payment: " + error.message 
+      });
     }
   });
 
