@@ -6,7 +6,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
-  const [remember, setRemember] = useState(true);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -56,7 +56,11 @@ export default function Login() {
         <h1 className="lp-title lp-title-center">Log in to your account</h1>
 
         {error && (
-          <div className="lp-error" role="alert" data-testid="text-error-message">
+          <div
+            className="lp-error"
+            role="alert"
+            data-testid="text-error-message"
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
               <circle
                 cx="12"
@@ -95,7 +99,11 @@ export default function Login() {
               Email address <span className="lp-req">*</span>
             </label>
             {tEmail && emailError && (
-              <div id="loginEmailErr" className="field-error" data-testid="text-email-error">
+              <div
+                id="loginEmailErr"
+                className="field-error"
+                data-testid="text-email-error"
+              >
                 {emailError}
               </div>
             )}
@@ -163,7 +171,11 @@ export default function Login() {
             </button>
 
             {tPwd && pwdError && (
-              <div id="loginPwdErr" className="field-error" data-testid="text-password-error">
+              <div
+                id="loginPwdErr"
+                className="field-error"
+                data-testid="text-password-error"
+              >
                 {pwdError}
               </div>
             )}
@@ -181,18 +193,27 @@ export default function Login() {
               <span className="lp-toggle-label">Remember me</span>
             </label>
 
-            <a href="mailto:checkout@traceaq.com?subject=Forgot Password" className="lp-link" data-testid="link-forgot-password">
+            <a
+              href="mailto:checkout@traceaq.com?subject=Forgot Password"
+              className="lp-link"
+              data-testid="link-forgot-password"
+            >
               Forgot password?
             </a>
           </div>
 
-          <button className="lp-submit" type="submit" disabled={loading} data-testid="button-login">
+          <button
+            className="lp-submit"
+            type="submit"
+            disabled={loading}
+            data-testid="button-login"
+          >
             {loading ? "LOGGING IN…" : "LOG IN"}
           </button>
 
           <p className="lp-small lp-center">
             Don't have an account?{" "}
-            <Link to="/signup" className="lp-link" data-testid="link-signup">
+            <Link to="/checkout" className="lp-link" data-testid="link-signup">
               Sign up
             </Link>
           </p>
@@ -200,11 +221,30 @@ export default function Login() {
 
         <div className="lp-footer">
           <div className="lp-footer-links lp-center">
-            <a href="mailto:checkout@traceaq.com?subject=Help Request" data-testid="link-help">Help</a>
+            <a
+              href="mailto:checkout@traceaq.com?subject=Help Request"
+              data-testid="link-help"
+            >
+              Help
+            </a>
             <span className="lp-dot">|</span>
-            <a href="https://traceaq.com/terms-of-use" target="_blank" rel="noreferrer" data-testid="link-terms">Terms</a>
+            <a
+              href="https://traceaq.com/terms-of-use"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="link-terms"
+            >
+              Terms
+            </a>
             <span className="lp-dot">|</span>
-            <a href="https://traceaq.com/privacy-policy" target="_blank" rel="noreferrer" data-testid="link-privacy">Privacy</a>
+            <a
+              href="https://traceaq.com/privacy-policy"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="link-privacy"
+            >
+              Privacy
+            </a>
           </div>
 
           <p className="lp-small lp-recaptcha lp-center">
