@@ -454,9 +454,6 @@ export default function AddressCard({
                 </a>
               </div>
 
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
-                The address will be used for billing and receipts.
-              </div>
             </div>
           </div>
         )}

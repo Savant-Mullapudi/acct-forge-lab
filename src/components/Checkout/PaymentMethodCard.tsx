@@ -114,7 +114,7 @@ export default function PaymentMethodCard({
               disabled={!isFormValid}
               data-testid="button-pay-now"
               style={{
-                width: '100%',
+                width: '50%',
                 marginTop: 20,
                 padding: '12px 16px',
                 border: 'none',
