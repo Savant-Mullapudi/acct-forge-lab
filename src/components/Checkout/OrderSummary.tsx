@@ -69,7 +69,7 @@ const OrderSummary: React.FC<Props> = ({
         <div style={{ borderBottom: '1px solid #E5E7EB', margin: '16px 0' }} />
 
         <div className="summaryProduct">
-          <div className="productTitle">{productName}</div>
+          <div className="productTitle" style={{ fontWeight: 'normal' }}>{productName}</div>
           <div className="productPrice">{money(unitPrice, currency)}</div>
         </div>
 
@@ -87,7 +87,7 @@ const OrderSummary: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="promoBadge" style={{ background: '#FAF5DC' }}>LIMITED-TIME INTRODUCTORY PRICING FOR EVERYONE</div>
+        <div className="promoBadge" style={{ background: '#FAF5DC', whiteSpace: 'nowrap' }}>LIMITED-TIME INTRODUCTORY PRICING FOR EVERYONE</div>
 
         <div className="couponRow">
           <input
@@ -104,8 +104,8 @@ const OrderSummary: React.FC<Props> = ({
         </div>
 
         <div className="summaryLine totalLine" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <strong>Total due today</strong>
-          <strong>{money(unitPrice * seats, currency)}</strong>
+          <span>Total due today</span>
+          <span>{money(unitPrice * seats, currency)}</span>
         </div>
 
         <button 
