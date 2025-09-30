@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import '../styles/payment-success.css';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -26,6 +26,7 @@ function CheckIcon() {
 }
 
 export default function Success() {
+  const navigate = useNavigate();
   const today = new Date();
   const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
 
@@ -75,7 +76,7 @@ export default function Success() {
             A confirmation email has been sent to checkout@gmail.com
           </p>
 
-          <button className="success-button" onClick={() => window.location.href = '/login'}>
+          <button className="success-button" onClick={() => navigate('/login')}>
             GO TO AERO
           </button>
         </main>
