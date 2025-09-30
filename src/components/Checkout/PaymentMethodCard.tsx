@@ -222,21 +222,16 @@ export default function PaymentMethodCard({
               style={{
                 width: '100%',
                 marginTop: 20,
-                padding: '14px 18px',
+                padding: '12px 16px',
                 border: 'none',
                 borderRadius: '8px',
                 background: isFormValid ? '#000D94' : '#d1d5db',
                 color: isFormValid ? '#fff' : '#9ca3af',
                 fontWeight: 600,
-                fontSize: 15,
-                letterSpacing: '0.5px',
+                fontSize: 14,
                 cursor: isFormValid ? 'pointer' : 'not-allowed',
                 transition: 'background-color .2s, transform .1s',
                 opacity: isFormValid ? 1 : 0.6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
               }}
               onMouseOver={(e) => {
                 if (isFormValid) e.currentTarget.style.background = '#001480';
@@ -246,7 +241,6 @@ export default function PaymentMethodCard({
               }}
             >
               REVIEW & CONFIRM
-              {isFormValid && <i className="fa fa-arrow-right" style={{ fontSize: 16, color: '#fff' }} />}
             </button>
           </div>
         )}
