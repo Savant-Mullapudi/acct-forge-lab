@@ -1,6 +1,8 @@
 import React from "react";
 import "font-awesome/css/font-awesome.min.css";
 import productDetailsImg from "@/assets/product-details.png";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Props = {
   productName?: string;
@@ -23,6 +25,64 @@ const OrderSummary: React.FC<Props> = ({
   const [showDesc, setShowDesc] = React.useState(false);
   const [coupon, setCoupon] = React.useState("");
   const [showCouponInput, setShowCouponInput] = React.useState(false);
+  const [appliedCoupon, setAppliedCoupon] = React.useState<{
+    percentOff?: number;
+    amountOff?: number;
+    currency?: string;
+    name?: string;
+  } | null>(null);
+  const [isVerifying, setIsVerifying] = React.useState(false);
+
+  const handleApplyCoupon = async () => {
+    if (!coupon.trim()) {
+      toast.error("Please enter a promo code");
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-coupon", {
+        body: { couponCode: coupon.trim() },
+      });
+
+      if (error) throw error;
+
+      if (data.valid) {
+        setAppliedCoupon(data);
+        toast.success(`Promo code "${coupon}" applied successfully!`);
+      } else {
+        toast.error(data.error || "Invalid promo code");
+      }
+    } catch (error: any) {
+      console.error("Error verifying coupon:", error);
+      toast.error(error.message || "Failed to verify promo code");
+      setAppliedCoupon(null);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Calculate discount
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    
+    const subtotal = unitPrice * seats;
+    
+    if (appliedCoupon.percentOff) {
+      return (subtotal * appliedCoupon.percentOff) / 100;
+    }
+    
+    if (appliedCoupon.amountOff) {
+      // Convert cents to dollars if needed
+      return appliedCoupon.amountOff / 100;
+    }
+    
+    return 0;
+  };
+
+  const discount = calculateDiscount();
+  const subtotal = unitPrice * seats;
+  const total = Math.max(0, subtotal - discount);
 
   return (
     <aside className="aside">
@@ -110,12 +170,28 @@ const OrderSummary: React.FC<Props> = ({
             placeholder="Promo code"
             value={coupon}
             onChange={(e) => setCoupon(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
             aria-label="Coupon code"
+            disabled={isVerifying}
           />
-          <button type="button" className="applyBtn">
-            Apply
+          <button 
+            type="button" 
+            className="applyBtn"
+            onClick={handleApplyCoupon}
+            disabled={isVerifying}
+          >
+            {isVerifying ? "Verifying..." : "Apply"}
           </button>
         </div>
+
+        {appliedCoupon && (
+          <div className="kv" style={{ color: "#16a34a", fontWeight: 500 }}>
+            <span className="k">
+              Discount{appliedCoupon.percentOff ? ` (${appliedCoupon.percentOff}% off)` : ""}
+            </span>
+            <span className="v">-{money(discount, currency)}</span>
+          </div>
+        )}
 
         <div
           className="summaryLine totalLine"
@@ -126,7 +202,9 @@ const OrderSummary: React.FC<Props> = ({
           }}
         >
           <span>Total due today</span>
-          <span>{money(unitPrice * seats, currency)}</span>
+          <span style={{ fontWeight: appliedCoupon ? 600 : 400 }}>
+            {money(total, currency)}
+          </span>
         </div>
 
         <button
