@@ -256,7 +256,7 @@ export default function SignUpCard({
                     setShowPasswordHints(false);
                   }}
                 />
-                <label className="floating-label">Password *</label>
+                <label className="floating-label">Create Password *</label>
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
