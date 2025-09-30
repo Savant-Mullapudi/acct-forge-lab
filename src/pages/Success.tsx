@@ -75,7 +75,7 @@ export default function Success() {
             A confirmation email has been sent to checkout@gmail.com
           </p>
 
-          <button className="success-button" onClick={() => window.location.href = 'https://aero.traceaq.com'}>
+          <button className="success-button" onClick={() => window.location.href = '/login'}>
             GO TO AERO
           </button>
         </main>

@@ -4,6 +4,8 @@
   display: grid;
   grid-template-columns: 40% 60%;
   background: #fff;
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 .lp-col {
@@ -43,7 +45,7 @@
 /* Title */
 .lp-title {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 500;
   color: #0f172a;
   margin: 8px 0 18px;
 }
@@ -211,7 +213,7 @@
 .lp-toggle input:checked + .lp-toggle-slider::after { transform: translateX(18px); }
 .lp-toggle-label { font-size: 14px; color: #374151; }
 
-.lp-link { color: #2563eb; text-decoration: none; }
+.lp-link { color: #2563eb; text-decoration: none; font-size: 14px; }
 .lp-link:hover { text-decoration: underline; }
 
 /* Submit */
@@ -222,6 +224,7 @@
   border-width: 0px;
   background: #00FF5E;
   color: #000D94;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .02em;
   cursor: pointer;
@@ -235,7 +238,7 @@
 }
 
 /* Center helpers */
-.lp-small { color: #6b7280; font-size: 13px; margin-top: 10px; }
+.lp-small { color: #6b7280; font-size: 14px; margin-top: 10px; }
 .lp-center { text-align: center; }
 
 /* Footer */
@@ -246,10 +249,11 @@
 }
 .lp-footer-links {
   display: inline-flex;
-  gap: 18px;
+  gap: 12px;
+  align-items: center;
   justify-content: center;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 14px;
 }
 .lp-footer-links a {
   color: inherit;
@@ -259,11 +263,8 @@
   text-decoration: underline;
 }
 .lp-dot {
-  width: 4px;
-  height: 4px;
-  background: #d1d5db;
-  border-radius: 999px;
-  align-self: center;
+  color: #d1d5db;
+  font-weight: 300;
 }
 .lp-recaptcha { margin-top: 10px; }
 .lp-recaptcha a { color: #2563eb; }
@@ -277,6 +278,10 @@
   justify-content: flex-end;
   padding-right: 48px;
   height: 100vh;
+  background: 
+    radial-gradient(circle, #d1d5db 1px, transparent 1px);
+  background-size: 12px 12px;
+  background-position: 0 0;
 }
 
 @media (max-width: 900px) {
