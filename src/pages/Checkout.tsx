@@ -6,6 +6,7 @@ import ResearcherDiscountCard from '@/components/Checkout/ResearcherDiscountCard
 import SignUpCard from '@/components/Checkout/SignUpCard';
 import AddressCard from '@/components/Checkout/AddressCard';
 import PaymentMethodCard from '@/components/Checkout/PaymentMethodCard';
+import PaymentMethodCardPlaceholder from '@/components/Checkout/PaymentMethodCardPlaceholder';
 import OrderSummary from '@/components/Checkout/OrderSummary';
 import OrderSummaryWithPayment from '@/components/Checkout/OrderSummaryWithPayment';
 import CheckoutHeader from '@/components/Checkout/CheckoutHeader';
@@ -144,24 +145,12 @@ export default function Checkout() {
                   onContinue={handlePaymentStepOpen}
                 />
                 
-                <PaymentMethodCard
-                  open={false}
+                <PaymentMethodCardPlaceholder
+                  open={step === 'payment'}
                   onToggle={() => setStep('payment')}
                   filled={false}
                 />
                 
-                {step === 'payment' && (
-                  <section className="card is-open">
-                    <div className="cardBody">
-                      <div className="rowTitle" style={{ marginBottom: 10 }}>
-                        <h3 className="sectionTitle">Payment Method</h3>
-                      </div>
-                      <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
-                        {isLoadingPayment ? 'Loading payment options...' : 'Initializing payment...'}
-                      </div>
-                    </div>
-                  </section>
-                )}
               </div>
               
               <aside className="aside">
