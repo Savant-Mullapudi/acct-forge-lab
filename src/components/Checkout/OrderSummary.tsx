@@ -99,7 +99,7 @@ const OrderSummary: React.FC<Props> = ({
     }
     
     if (appliedCoupon.amountOff) {
-      // Stripe amount_off is in cents (smallest currency unit)
+      // Convert cents to dollars if needed
       return appliedCoupon.amountOff / 100;
     }
     

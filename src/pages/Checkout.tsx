@@ -28,12 +28,6 @@ export default function Checkout() {
     setAddressFilled(true);
     setStep('payment');
     
-    // Store user email for success page
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.email) {
-      sessionStorage.setItem('user_email', session.user.email);
-    }
-    
     // Create payment intent when payment step opens
     if (!clientSecret) {
       setIsLoadingPayment(true);

@@ -26,44 +26,6 @@ function CheckIcon() {
 }
 
 export default function Success() {
-  const [searchParams] = useSearchParams();
-  const [paymentData, setPaymentData] = useState({
-    amount: '$229.00',
-    paymentMethod: 'Visa **** 1234',
-    email: 'checkout@gmail.com'
-  });
-
-  useEffect(() => {
-    // Get data from sessionStorage
-    const storedAmount = sessionStorage.getItem('payment_amount');
-    const storedCurrency = sessionStorage.getItem('payment_currency');
-    const storedEmail = sessionStorage.getItem('user_email');
-    const storedPaymentMethod = sessionStorage.getItem('payment_method');
-
-    // Get payment intent from URL if available
-    const paymentIntent = searchParams.get('payment_intent');
-
-    if (storedAmount) {
-      const amount = parseFloat(storedAmount);
-      const currency = storedCurrency || 'USD';
-      const formattedAmount = new Intl.NumberFormat('en-US', { 
-        style: 'currency', 
-        currency 
-      }).format(amount);
-      
-      setPaymentData(prev => ({
-        ...prev,
-        amount: formattedAmount,
-        email: storedEmail || prev.email,
-        paymentMethod: storedPaymentMethod || prev.paymentMethod
-      }));
-
-      // Clear sessionStorage after use
-      sessionStorage.removeItem('payment_amount');
-      sessionStorage.removeItem('payment_currency');
-    }
-  }, [searchParams]);
-
   const today = new Date();
   const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
 
@@ -96,7 +58,7 @@ export default function Success() {
             <div className="success-details-list">
               <div className="success-detail-row">
                 <span className="success-detail-label">Amount:</span>
-                <span className="success-detail-value">{paymentData.amount}</span>
+                <span className="success-detail-value">$229.00</span>
               </div>
               <div className="success-detail-row">
                 <span className="success-detail-label">Date:</span>
@@ -104,13 +66,13 @@ export default function Success() {
               </div>
               <div className="success-detail-row">
                 <span className="success-detail-label">Payment Method:</span>
-                <span className="success-detail-value">{paymentData.paymentMethod}</span>
+                <span className="success-detail-value">Visa **** 1234</span>
               </div>
             </div>
           </div>
 
           <p className="success-confirmation-text">
-            A confirmation email has been sent to {paymentData.email}
+            A confirmation email has been sent to checkout@gmail.com
           </p>
 
           <button className="success-button" onClick={() => window.location.href = '/login'}>
