@@ -110,7 +110,7 @@ export default function SignUpCard({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {open ? (
               <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-                Have an account? <a href="/login">Sign in</a>
+                Have an account? <a href="/login" style={{ color: '#2563eb', textDecoration: 'none' }}>Sign in</a>
               </div>
             ) : (
               <a
@@ -204,7 +204,7 @@ export default function SignUpCard({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-              <div className="field" style={{ position: 'relative' }}>
+              <div className="field" style={{ position: 'relative', zIndex: 10 }}>
                 <input
                   className={`input ${passwordError ? 'input-error' : ''}`}
                   type={showPassword ? 'text' : 'password'}
