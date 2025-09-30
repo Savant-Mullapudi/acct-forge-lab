@@ -39,7 +39,7 @@ export default function Checkout() {
 
         const { data, error } = await supabase.functions.invoke('create-payment-intent', {
           body: {
-            priceId: 'price_1QoaQw02nFbFPjIgvSiInV80', // Replace with your actual price ID
+            priceId: 'price_1SD8wWCaDTRDsxQRp5dKKTIs', // Replace with your actual price ID
           },
           headers: {
             Authorization: `Bearer ${session.access_token}`,
