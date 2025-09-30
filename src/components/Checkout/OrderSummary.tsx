@@ -45,6 +45,7 @@ const OrderSummary: React.FC<Props> = ({
           <div className="orderRowLabel">Product Description</div>
           <i
             className="fa fa-chevron-down"
+            fontSize: 12, 
             aria-hidden="true"
             style={{
               transform: showDesc ? 'rotate(180deg)' : 'rotate(0deg)',
