@@ -108,7 +108,7 @@ export default function PaymentMethodCard({
                 if (isFormValid) e.currentTarget.style.background = '#000D94';
               }}
             >
-              CONTINUE
+              REVIEW & CONFIRM
             </button>
           </form>
         )}
