@@ -63,16 +63,12 @@ serve(async (req) => {
     const price = await stripe.prices.retrieve(priceId);
     console.log("Price details:", price.type, price.unit_amount, price.currency);
 
-    // Create payment intent with automatic payment methods enabled
-    // This supports credit cards, Cash App Pay, Klarna, Amazon Pay, and more
+    // Create payment intent with specific payment methods (excluding Affirm)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: price.unit_amount || 0,
       currency: price.currency,
       customer: customerId,
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: 'always',
-      },
+      payment_method_types: ['card', 'cashapp', 'klarna', 'amazon_pay', 'link'],
       metadata: {
         priceId: priceId,
         userId: user.id,
