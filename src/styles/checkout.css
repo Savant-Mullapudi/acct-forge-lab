@@ -215,24 +215,13 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 .field .floating-label {
-  position: absolute; 
-  left: 50%; 
-  top: 50%; 
-  transform: translate(-50%, -50%);
-  font-size: 14px; 
-  color: #6b7280;
-  pointer-events: none; 
-  transition: all .18s;
-  background: #fff; 
-  padding: 0 4px;
+  position: absolute; left: 12px; top: 18px; font-size: 14px; color: #6b7280;
+  pointer-events: none; transition: top .18s, font-size .18s, color .18s;
+  background: #fff; padding: 0 4px;
 }
 .field .input:focus + .floating-label,
 .field .input:not(:placeholder-shown) + .floating-label {
-  top: 6px; 
-  left: 12px;
-  transform: translate(0, 0);
-  font-size: 11px; 
-  color: #6b7280;
+  top: 6px; font-size: 11px; color: #6b7280;
 }
 .field .input:focus + .floating-label { color: #2563eb; }
 
@@ -316,16 +305,13 @@
     font-size: 13px;
   }
   .field .floating-label {
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    left: 8px;
+    top: 14px;
     font-size: 12px;
   }
   .field .input:focus + .floating-label,
   .field .input:not(:placeholder-shown) + .floating-label {
     top: 4px;
-    left: 8px;
-    transform: translate(0, 0);
     font-size: 10px;
   }
 }
