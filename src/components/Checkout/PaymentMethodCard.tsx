@@ -1,5 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PaymentMethodCard({
   open,
@@ -7,59 +10,94 @@ export default function PaymentMethodCard({
   filled,
   onReviewConfirm,
 }: { open: boolean; onToggle: () => void; filled: boolean; onReviewConfirm?: () => void }) {
-  const [cardNumber, setCardNumber] = React.useState('');
-  const [expiry, setExpiry] = React.useState('');
-  const [cvv, setCvv] = React.useState('');
   const [cardholderName, setCardholderName] = React.useState('');
+  const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isCardComplete, setIsCardComplete] = React.useState(false);
+  const stripe = useStripe();
+  const elements = useElements();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Format card number with spaces every 4 digits
-  const formatCardNumber = (value: string) => {
-    const cleaned = value.replace(/\s/g, '');
-    const match = cleaned.match(/.{1,4}/g);
-    return match ? match.join(' ') : cleaned;
-  };
-
-  // Format expiry as MM/YY
-  const formatExpiry = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
+  const handleReviewConfirm = async () => {
+    if (!stripe || !elements) {
+      toast({
+        title: "Error",
+        description: "Stripe is not loaded yet. Please try again.",
+        variant: "destructive",
+      });
+      return;
     }
-    return cleaned;
-  };
 
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\s/g, '');
-    if (/^\d*$/.test(value) && value.length <= 16) {
-      setCardNumber(formatCardNumber(value));
+    setIsProcessing(true);
+
+    try {
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        throw new Error("Card element not found");
+      }
+
+      // Create payment method
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+        billing_details: {
+          name: cardholderName,
+        },
+      });
+
+      if (pmError) {
+        throw new Error(pmError.message);
+      }
+
+      console.log("Payment method created:", paymentMethod.id);
+
+      // Get the session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
+      }
+
+      // TODO: Replace with actual price ID from your product
+      const priceId = "price_1S0K8BCaDTRDsxQROQm3zmKm"; // $129/month recurring
+
+      // Call edge function to create payment/subscription
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+        body: {
+          priceId,
+          paymentMethodId: paymentMethod.id,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      console.log("Payment response:", data);
+
+      if (data.success) {
+        toast({
+          title: "Payment Successful!",
+          description: "Your payment has been processed successfully.",
+        });
+        
+        onReviewConfirm?.();
+        navigate('/success');
+      } else {
+        throw new Error("Payment failed");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast({
+        title: "Payment Failed",
+        description: error instanceof Error ? error.message : "An error occurred during payment",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (value.length <= 4) {
-      setExpiry(formatExpiry(value));
-    }
-  };
-
-  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value) && value.length <= 4) {
-      setCvv(value);
-    }
-  };
-
-  const handleReviewConfirm = () => {
-    onReviewConfirm?.();
-  };
-
-  // Validate all payment fields are filled and properly formatted
-  const isFormValid = 
-    cardNumber.replace(/\s/g, '').length === 16 && 
-    expiry.length === 5 && 
-    cvv.length >= 3 && 
-    cardholderName.trim() !== '';
+  const isFormValid = isCardComplete && cardholderName.trim() !== '' && !isProcessing;
 
   return (
     <section className={`card ${open ? 'is-open' : ''}`}>
@@ -115,74 +153,30 @@ export default function PaymentMethodCard({
             </div>
             
             <div style={{ display: 'grid', gap: 12 }}>
-              {/* Card number with inline logos */}
-              <div className="field" style={{ position: 'relative' }}>
-                <input
-                  className="input"
-                  placeholder=" "
-                  aria-label="card number"
-                  value={cardNumber}
-                  onChange={handleCardNumberChange}
-                  maxLength={19}
-                  style={{ paddingRight: 150 }}
-                  data-testid="input-card-number"
+              {/* Stripe Card Element */}
+              <div style={{
+                padding: '16px',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                background: '#fff',
+              }}>
+                <CardElement
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: '16px',
+                        color: '#111',
+                        '::placeholder': {
+                          color: '#9ca3af',
+                        },
+                      },
+                      invalid: {
+                        color: '#ef4444',
+                      },
+                    },
+                  }}
+                  onChange={(e) => setIsCardComplete(e.complete)}
                 />
-                <label className="floating-label">1234 1234 1234 1234</label>
-                <div style={{ 
-                  position: 'absolute', 
-                  right: 12, 
-                  top: '50%', 
-                  transform: 'translateY(-50%)',
-                  display: 'flex', 
-                  gap: 6, 
-                  alignItems: 'center' 
-                }}>
-                  <i className="fa fa-cc-mastercard" style={{ fontSize: 24, color: '#EB001B' }} aria-label="Mastercard" />
-                  <i className="fa fa-cc-visa" style={{ fontSize: 24, color: '#1434CB' }} aria-label="Visa" />
-                  <i className="fa fa-cc-amex" style={{ fontSize: 24, color: '#006FCF' }} aria-label="American Express" />
-                  <i className="fa fa-cc-discover" style={{ fontSize: 24, color: '#FF6000' }} aria-label="Discover" />
-                </div>
-              </div>
-
-              {/* Expiry and CVV row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="field">
-                  <input
-                    className="input"
-                    placeholder=" "
-                    aria-label="expiry"
-                    value={expiry}
-                    onChange={handleExpiryChange}
-                    maxLength={5}
-                    data-testid="input-expiry"
-                  />
-                  <label className="floating-label">MM / YY</label>
-                </div>
-
-                <div className="field" style={{ position: 'relative' }}>
-                  <input
-                    className="input"
-                    placeholder=" "
-                    aria-label="cvc"
-                    type="password"
-                    value={cvv}
-                    onChange={handleCvvChange}
-                    maxLength={4}
-                    style={{ paddingRight: 40 }}
-                    data-testid="input-cvv"
-                  />
-                  <label className="floating-label">CVC</label>
-                  <i className="fa fa-lock" 
-                    style={{ 
-                      position: 'absolute', 
-                      right: 12, 
-                      top: '50%', 
-                      transform: 'translateY(-50%)',
-                      fontSize: 14, 
-                      color: '#9ca3af' 
-                    }} 
-                  />
-                </div>
               </div>
             </div>
 
@@ -240,7 +234,7 @@ export default function PaymentMethodCard({
                 if (isFormValid) e.currentTarget.style.background = '#000D94';
               }}
             >
-              REVIEW & CONFIRM
+              {isProcessing ? 'PROCESSING...' : 'REVIEW & CONFIRM'}
             </button>
           </div>
         )}

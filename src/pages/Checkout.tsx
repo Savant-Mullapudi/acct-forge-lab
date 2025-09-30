@@ -1,4 +1,6 @@
 import React from 'react';
+import { Elements } from '@stripe/react-stripe-js';
+import { stripePromise } from '@/lib/stripe';
 import ResearcherDiscountCard from '@/components/Checkout/ResearcherDiscountCard';
 import SignUpCard from '@/components/Checkout/SignUpCard';
 import AddressCard from '@/components/Checkout/AddressCard';
@@ -43,12 +45,14 @@ export default function Checkout() {
               }}
             />
 
-            <PaymentMethodCard
-              open={step === 'payment'}
-              onToggle={() => setStep('payment')}
-              filled={paymentFilled}
-              onReviewConfirm={() => setReviewConfirmed(true)}
-            />
+            <Elements stripe={stripePromise}>
+              <PaymentMethodCard
+                open={step === 'payment'}
+                onToggle={() => setStep('payment')}
+                filled={paymentFilled}
+                onReviewConfirm={() => setReviewConfirmed(true)}
+              />
+            </Elements>
           </div>
           <aside className="aside">
             <OrderSummary subscribeEnabled={reviewConfirmed} />
