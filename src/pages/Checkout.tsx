@@ -143,7 +143,13 @@ export default function Checkout() {
                   onToggle={() => setStep('address')}
                   onContinue={handlePaymentStepOpen}
                 />
-
+                
+                <PaymentMethodCard
+                  open={false}
+                  onToggle={() => setStep('payment')}
+                  filled={false}
+                />
+                
                 {step === 'payment' && (
                   <section className="card is-open">
                     <div className="cardBody">

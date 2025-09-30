@@ -38,28 +38,50 @@ const OrderSummary: React.FC<Props> = ({
   const [isVerifying, setIsVerifying] = React.useState(false);
 
   const handleApplyCoupon = async () => {
-    if (!coupon.trim()) {
+    const code = coupon.trim();
+    if (!code) {
       toast.error("Please enter a promo code");
+      return;
+    }
+    if (code.length > 64) {
+      toast.error("Promo code is too long");
       return;
     }
 
     setIsVerifying(true);
     try {
       const { data, error } = await supabase.functions.invoke("verify-coupon", {
-        body: { couponCode: coupon.trim() },
+        body: { couponCode: code },
       });
 
-      if (error) throw error;
+      if (error) {
+        let message = error.message || "Failed to verify promo code";
+        try {
+          const res = (error as any)?.context?.response as Response | undefined;
+          if (res) {
+            const text = await res.text();
+            try {
+              const json = JSON.parse(text);
+              if (json?.error) message = json.error;
+            } catch {
+              if (text) message = text;
+            }
+          }
+        } catch {}
+        throw new Error(message);
+      }
 
-      if (data.valid) {
+      if (data?.valid) {
         setAppliedCoupon(data);
-        toast.success(`Promo code "${coupon}" applied successfully!`);
+        toast.success(`Promo code "${code}" applied successfully!`);
       } else {
-        toast.error(data.error || "Invalid promo code");
+        const msg = data?.error || "Invalid promo code";
+        setAppliedCoupon(null);
+        toast.error(msg);
       }
     } catch (error: any) {
       console.error("Error verifying coupon:", error);
-      toast.error(error.message || "Failed to verify promo code");
+      toast.error(error?.message || "Failed to verify promo code");
       setAppliedCoupon(null);
     } finally {
       setIsVerifying(false);
