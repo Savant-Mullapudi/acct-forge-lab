@@ -1,5 +1,6 @@
 import React from 'react';
 import 'font-awesome/css/font-awesome.min.css';
+import productDetailsImg from '@/assets/product-details.png';
 
 type Props = {
   productName?: string;
@@ -54,7 +55,7 @@ const OrderSummary: React.FC<Props> = ({
         {showDesc && (
           <div style={{ margin: '12px 0', textAlign: 'center' }}>
             <img
-              src="/images/PD.png"
+              src={productDetailsImg}
               alt="Product Description"
               style={{
                 maxWidth: '100%',
@@ -65,7 +66,7 @@ const OrderSummary: React.FC<Props> = ({
           </div>
         )}
 
-        <div className="divider" />
+        <div style={{ borderBottom: '1px solid #E5E7EB', margin: '16px 0' }} />
 
         <div className="summaryProduct">
           <div className="productTitle">{productName}</div>
@@ -78,15 +79,15 @@ const OrderSummary: React.FC<Props> = ({
           </div>
           <div className="kv">
             <span className="k">Aero Monthly Plan</span>
-            <span className="v">{money(unitPrice, currency)} per seat</span>
+            <span className="v" style={{ color: '#929292' }}>{money(unitPrice, currency)} per seat</span>
           </div>
           <div className="kv">
             <span className="k">Taxes</span>
-            <span className="v">Calculated at checkout</span>
+            <span className="v" style={{ color: '#929292' }}>Calculated at checkout</span>
           </div>
         </div>
 
-        <div className="promoBadge">LIMITED-TIME INTRODUCTORY PRICING FOR EVERYONE</div>
+        <div className="promoBadge" style={{ background: '#FAF5DC' }}>LIMITED-TIME INTRODUCTORY PRICING FOR EVERYONE</div>
 
         <div className="couponRow">
           <input
@@ -118,6 +119,7 @@ const OrderSummary: React.FC<Props> = ({
             color: subscribeEnabled ? '#000' : '#9ca3af',
             cursor: subscribeEnabled ? 'pointer' : 'not-allowed',
             opacity: subscribeEnabled ? 1 : 0.6,
+            fontSize: 14,
           }}
         >
           SUBSCRIBE <span className="arrow">›</span>
