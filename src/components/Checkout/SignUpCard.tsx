@@ -28,7 +28,7 @@ export default function SignUpCard({
   const [confirm, setConfirm] = React.useState('');
   const [agreeTerms, setAgreeTerms] = React.useState(false);
   const [agreePrivacy, setAgreePrivacy] = React.useState(false);
-  const [agreeMarketing, setAgreeMarketing] = React.useState(false);
+  const [agreeMarketing, setAgreeMarketing] = React.useState(true);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [showPasswordHints, setShowPasswordHints] = React.useState(false);
