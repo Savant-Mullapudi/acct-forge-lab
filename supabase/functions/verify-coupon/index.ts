@@ -25,8 +25,18 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
+    console.log("Attempting to retrieve coupon:", couponCode);
+    
     // Retrieve the coupon from Stripe
     const coupon = await stripe.coupons.retrieve(couponCode);
+    
+    console.log("Coupon retrieved:", { 
+      id: coupon.id, 
+      valid: coupon.valid,
+      percentOff: coupon.percent_off,
+      amountOff: coupon.amount_off,
+      currency: coupon.currency
+    });
 
     if (!coupon.valid) {
       return new Response(

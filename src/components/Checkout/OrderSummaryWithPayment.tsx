@@ -39,6 +39,13 @@ const OrderSummaryWithPayment: React.FC<Props> = (props) => {
     setIsProcessing(true);
 
     try {
+      // Store payment details in sessionStorage before redirect
+      const amount = props.unitPrice || 229;
+      const currency = props.currency || 'USD';
+      
+      sessionStorage.setItem('payment_amount', amount.toString());
+      sessionStorage.setItem('payment_currency', currency);
+      
       // Confirm payment with Stripe
       const { error } = await stripe.confirmPayment({
         elements,
