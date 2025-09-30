@@ -92,65 +92,58 @@
 /* Field styling - matches checkout page */
 .lp-form .field {
   position: relative;
+  display: block;
   margin-bottom: 20px;
 }
 
 .lp-form .field .input {
   width: 100%;
-  height: 38px;
+  padding: 18px 12px 8px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 0 12px;
+  background: #fff;
   font-size: 14px;
   outline: none;
-  background: #fff;
-  color: #111827;
-  box-sizing: border-box;
+  transition: border-color .2s, box-shadow .2s;
+  font-family: inherit;
+  color: #111;
+}
+
+.lp-form .field .input:hover {
+  border-color: #9ca3af;
 }
 
 .lp-form .field .input:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .lp-form .field .input.input-error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239,68,68,.12);
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 .lp-form .field .floating-label {
   position: absolute;
-  left: 8px;
-  top: -8px;
-  font-size: 12px;
+  left: 12px;
+  top: 18px;
+  font-size: 14px;
   color: #6b7280;
   pointer-events: none;
-  transition: all 0.2s;
+  transition: top .18s, font-size .18s, color .18s;
   background: #fff;
-  padding: 0 6px;
-  z-index: 1;
-}
-
-.lp-form .field .input:focus + .floating-label {
-  color: #2563eb;
-}
-
-.lp-form .field .input:not(:focus) + .floating-label {
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  left: 12px;
   padding: 0 4px;
 }
 
 .lp-form .field .input:focus + .floating-label,
 .lp-form .field .input:not(:placeholder-shown) + .floating-label {
-  top: -8px;
-  transform: translateY(0);
-  font-size: 12px;
-  left: 8px;
-  padding: 0 6px;
+  top: 6px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.lp-form .field .input:focus + .floating-label {
+  color: #2563eb;
 }
 
 .lp-req {
