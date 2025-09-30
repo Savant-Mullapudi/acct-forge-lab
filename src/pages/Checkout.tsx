@@ -6,6 +6,7 @@ import ResearcherDiscountCard from '@/components/Checkout/ResearcherDiscountCard
 import SignUpCard from '@/components/Checkout/SignUpCard';
 import AddressCard from '@/components/Checkout/AddressCard';
 import PaymentMethodCard from '@/components/Checkout/PaymentMethodCard';
+import OrderSummary from '@/components/Checkout/OrderSummary';
 import OrderSummaryWithPayment from '@/components/Checkout/OrderSummaryWithPayment';
 import CheckoutHeader from '@/components/Checkout/CheckoutHeader';
 import '../styles/checkout.css';
@@ -158,7 +159,7 @@ export default function Checkout() {
               </div>
               
               <aside className="aside">
-                <OrderSummaryWithPayment subscribeEnabled={false} />
+                <OrderSummary subscribeEnabled={false} />
               </aside>
             </>
           )}
