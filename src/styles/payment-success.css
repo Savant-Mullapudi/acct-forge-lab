@@ -115,7 +115,7 @@
 /* Button */
 .success-button {
   background: #00FF5E;
-  color: #000D94;
+  color: #000;
   border: none;
   border-radius: 8px;
   padding: 12px 32px;
@@ -134,11 +134,11 @@
   .success-header-inner {
     padding: 16px 24px;
   }
-
+  
   .success-logo {
     width: 140px;
   }
-
+  
   .success-container {
     padding: 40px 16px 32px;
   }
@@ -148,27 +148,27 @@
   .success-header-inner {
     padding: 12px 16px;
   }
-
+  
   .success-logo {
     width: 120px;
   }
-
+  
   .success-container {
     padding: 32px 12px 24px;
   }
-
+  
   .success-title {
     font-size: 24px;
   }
-
+  
   .success-subtitle {
     font-size: 15px;
   }
-
+  
   .success-details-card {
     padding: 20px;
   }
-
+  
   .success-button {
     width: 100%;
   }

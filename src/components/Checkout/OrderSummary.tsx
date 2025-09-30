@@ -137,11 +137,10 @@ const OrderSummary: React.FC<Props> = ({
           data-testid="button-subscribe"
           style={{
             background: subscribeEnabled ? "#00FF5E" : "#d1d5db",
-            color: subscribeEnabled ? "#000D94" : "#9ca3af",
+            color: subscribeEnabled ? "#000" : "#9ca3af",
             cursor: subscribeEnabled ? "pointer" : "not-allowed",
             opacity: subscribeEnabled ? 1 : 0.6,
             fontSize: 14,
-            fontWeight: 600,
           }}
         >
           SUBSCRIBE <span className="arrow">›</span>
