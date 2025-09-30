@@ -6,7 +6,7 @@ import ResearcherDiscountCard from '@/components/Checkout/ResearcherDiscountCard
 import SignUpCard from '@/components/Checkout/SignUpCard';
 import AddressCard from '@/components/Checkout/AddressCard';
 import PaymentMethodCard from '@/components/Checkout/PaymentMethodCard';
-import OrderSummary from '@/components/Checkout/OrderSummary';
+import OrderSummaryWithPayment from '@/components/Checkout/OrderSummaryWithPayment';
 import CheckoutHeader from '@/components/Checkout/CheckoutHeader';
 import '../styles/checkout.css';
 import 'font-awesome/css/font-awesome.min.css';
@@ -82,63 +82,86 @@ export default function Checkout() {
       <CheckoutHeader />
       <div className="checkout">
         <div className="grid">
-          <div className="leftCol">
-            <ResearcherDiscountCard />
-
-            <SignUpCard
-              open={step === 'signup'}
-              onToggle={() => setStep('signup')}
-              onContinue={() => {
-                setSignupFilled(true);
-                setStep('address');
-              }}
-            />
-
-            <AddressCard
-              open={step === 'address'}
-              onToggle={() => setStep('address')}
-              onContinue={handlePaymentStepOpen}
-            />
-
-            {/* Only render Payment Element when we have a client secret */}
-            {clientSecret ? (
-              <Elements 
-                stripe={stripePromise}
-                options={{
-                  clientSecret,
-                  appearance: {
-                    theme: 'stripe',
-                    variables: {
-                      colorPrimary: '#000D94',
-                    },
+          {clientSecret ? (
+            <Elements 
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: 'stripe',
+                  variables: {
+                    colorPrimary: '#000D94',
                   },
-                }}
-              >
+                },
+              }}
+            >
+              <div className="leftCol">
+                <ResearcherDiscountCard />
+
+                <SignUpCard
+                  open={step === 'signup'}
+                  onToggle={() => setStep('signup')}
+                  onContinue={() => {
+                    setSignupFilled(true);
+                    setStep('address');
+                  }}
+                />
+
+                <AddressCard
+                  open={step === 'address'}
+                  onToggle={() => setStep('address')}
+                  onContinue={handlePaymentStepOpen}
+                />
+
                 <PaymentMethodCard
                   open={step === 'payment'}
                   onToggle={() => setStep('payment')}
                   filled={paymentFilled}
                   onReviewConfirm={() => setReviewConfirmed(true)}
                 />
-              </Elements>
-            ) : (
-              step === 'payment' && (
-                <section className="card is-open">
-                  <div className="cardBody">
-                    <div className="rowTitle" style={{ marginBottom: 10 }}>
-                      <h3 className="sectionTitle">Payment Method</h3>
+              </div>
+              
+              <OrderSummaryWithPayment subscribeEnabled={reviewConfirmed} />
+            </Elements>
+          ) : (
+            <>
+              <div className="leftCol">
+                <ResearcherDiscountCard />
+
+                <SignUpCard
+                  open={step === 'signup'}
+                  onToggle={() => setStep('signup')}
+                  onContinue={() => {
+                    setSignupFilled(true);
+                    setStep('address');
+                  }}
+                />
+
+                <AddressCard
+                  open={step === 'address'}
+                  onToggle={() => setStep('address')}
+                  onContinue={handlePaymentStepOpen}
+                />
+
+                {step === 'payment' && (
+                  <section className="card is-open">
+                    <div className="cardBody">
+                      <div className="rowTitle" style={{ marginBottom: 10 }}>
+                        <h3 className="sectionTitle">Payment Method</h3>
+                      </div>
+                      <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+                        {isLoadingPayment ? 'Loading payment options...' : 'Initializing payment...'}
+                      </div>
                     </div>
-                    <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
-                      {isLoadingPayment ? 'Loading payment options...' : 'Initializing payment...'}
-                    </div>
-                  </div>
-                </section>
-              )
-            )}
-          </div>
-          <aside className="aside">
-            <OrderSummary subscribeEnabled={reviewConfirmed} />
-          </aside>
+                  </section>
+                )}
+              </div>
+              
+              <aside className="aside">
+                <OrderSummaryWithPayment subscribeEnabled={false} />
+              </aside>
+            </>
+          )}
         </div>
       </div>
     </>

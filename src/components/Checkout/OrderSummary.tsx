@@ -10,6 +10,8 @@ type Props = {
   unitPrice?: number;
   currency?: string;
   subscribeEnabled?: boolean;
+  onSubscribe?: () => void;
+  isProcessing?: boolean;
 };
 
 const money = (n: number, currency = "USD") =>
@@ -21,6 +23,8 @@ const OrderSummary: React.FC<Props> = ({
   unitPrice = 229,
   currency = "USD",
   subscribeEnabled = false,
+  onSubscribe,
+  isProcessing = false,
 }: Props) => {
   const [showDesc, setShowDesc] = React.useState(false);
   const [coupon, setCoupon] = React.useState("");
@@ -210,18 +214,18 @@ const OrderSummary: React.FC<Props> = ({
         <button
           type="button"
           className="btnSubscribe"
-          onClick={() => (window.location.href = "/success")}
-          disabled={!subscribeEnabled}
+          onClick={onSubscribe}
+          disabled={!subscribeEnabled || isProcessing}
           data-testid="button-subscribe"
           style={{
-            background: subscribeEnabled ? "#00FF5E" : "#d1d5db",
-            color: subscribeEnabled ? "#000" : "#9ca3af",
-            cursor: subscribeEnabled ? "pointer" : "not-allowed",
-            opacity: subscribeEnabled ? 1 : 0.6,
+            background: (subscribeEnabled && !isProcessing) ? "#00FF5E" : "#d1d5db",
+            color: (subscribeEnabled && !isProcessing) ? "#000" : "#9ca3af",
+            cursor: (subscribeEnabled && !isProcessing) ? "pointer" : "not-allowed",
+            opacity: (subscribeEnabled && !isProcessing) ? 1 : 0.6,
             fontSize: 14,
           }}
         >
-          SUBSCRIBE <span className="arrow">›</span>
+          {isProcessing ? 'PROCESSING...' : 'SUBSCRIBE'} {!isProcessing && <span className="arrow">›</span>}
         </button>
       </section>
     </aside>

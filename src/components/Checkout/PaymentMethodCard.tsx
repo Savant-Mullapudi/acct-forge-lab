@@ -16,47 +16,21 @@ export default function PaymentMethodCard({
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleReviewConfirm = async (event: React.FormEvent) => {
+  const handleReviewConfirm = (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (!stripe || !elements) {
+    
+    if (!isPaymentReady) {
       toast({
-        title: "Error",
-        description: "Stripe is not loaded yet. Please try again.",
+        title: "Payment Method Required",
+        description: "Please select a payment method to continue.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsProcessing(true);
-
-    try {
-      // Confirm payment with Stripe - supports cards, Cash App, Klarna, Amazon Pay, etc.
-      const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/success`,
-        },
-      });
-
-      if (error) {
-        // Payment failed or was cancelled
-        toast({
-          title: "Payment Failed",
-          description: error.message || "An error occurred during payment",
-          variant: "destructive",
-        });
-        setIsProcessing(false);
-      }
-      // If no error, user will be redirected to return_url
-    } catch (error) {
-      console.error("Payment error:", error);
-      toast({
-        title: "Payment Failed",
-        description: error instanceof Error ? error.message : "An error occurred during payment",
-        variant: "destructive",
-      });
-      setIsProcessing(false);
+    // Just enable the subscribe button
+    if (onReviewConfirm) {
+      onReviewConfirm();
     }
   };
 
@@ -108,11 +82,11 @@ export default function PaymentMethodCard({
               By subscribing, you authorize Trace Air Quality, Inc. to charge your payment method according to the terms, until you cancel.
             </div>
 
-            {/* Pay Now button */}
+            {/* Continue button */}
             <button 
               type="submit"
               disabled={!isFormValid}
-              data-testid="button-pay-now"
+              data-testid="button-continue"
               style={{
                 width: '50%',
                 marginTop: 20,
@@ -134,7 +108,7 @@ export default function PaymentMethodCard({
                 if (isFormValid) e.currentTarget.style.background = '#000D94';
               }}
             >
-              {isProcessing ? 'PROCESSING...' : 'PAY NOW'}
+              CONTINUE
             </button>
           </form>
         )}
