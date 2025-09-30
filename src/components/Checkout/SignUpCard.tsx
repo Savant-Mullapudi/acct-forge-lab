@@ -236,8 +236,7 @@ export default function SignUpCard({
                   style={{
                     position: 'absolute',
                     right: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: 22,
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
@@ -352,8 +351,7 @@ export default function SignUpCard({
                   style={{
                     position: 'absolute',
                     right: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: 22,
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
