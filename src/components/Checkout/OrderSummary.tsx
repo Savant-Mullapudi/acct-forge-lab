@@ -6,6 +6,7 @@ type Props = {
   seats?: number;
   unitPrice?: number;
   currency?: string;
+  subscribeEnabled?: boolean;
 };
 
 const money = (n: number, currency = 'USD') =>
@@ -16,6 +17,7 @@ const OrderSummary: React.FC<Props> = ({
   seats = 1,
   unitPrice = 229,
   currency = 'USD',
+  subscribeEnabled = false,
 }: Props) => {
   const [showDesc, setShowDesc] = React.useState(false);
   const [coupon, setCoupon] = React.useState('');
@@ -105,7 +107,18 @@ const OrderSummary: React.FC<Props> = ({
           <strong>{money(unitPrice * seats, currency)}</strong>
         </div>
 
-        <button type="button" className="btnSubscribe" onClick={() => window.location.href = '/success'}>
+        <button 
+          type="button" 
+          className="btnSubscribe" 
+          onClick={() => window.location.href = '/success'}
+          disabled={!subscribeEnabled}
+          style={{
+            background: subscribeEnabled ? '#00FF5E' : '#d1d5db',
+            color: subscribeEnabled ? '#000' : '#9ca3af',
+            cursor: subscribeEnabled ? 'pointer' : 'not-allowed',
+            opacity: subscribeEnabled ? 1 : 0.6,
+          }}
+        >
           SUBSCRIBE <span className="arrow">›</span>
         </button>
       </section>

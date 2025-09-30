@@ -5,7 +5,8 @@ export default function PaymentMethodCard({
   open,
   onToggle,
   filled,
-}: { open: boolean; onToggle: () => void; filled: boolean }) {
+  onReviewConfirm,
+}: { open: boolean; onToggle: () => void; filled: boolean; onReviewConfirm?: () => void }) {
   const [cardNumber, setCardNumber] = React.useState('');
   const [expiry, setExpiry] = React.useState('');
   const [cvv, setCvv] = React.useState('');
@@ -13,7 +14,7 @@ export default function PaymentMethodCard({
   const navigate = useNavigate();
 
   const handleReviewConfirm = () => {
-    navigate('/success');
+    onReviewConfirm?.();
   };
 
   // Validate all payment fields are filled
@@ -189,6 +190,10 @@ export default function PaymentMethodCard({
                 cursor: isFormValid ? 'pointer' : 'not-allowed',
                 transition: 'background-color .2s, transform .1s',
                 opacity: isFormValid ? 1 : 0.6,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
               }}
               onMouseOver={(e) => {
                 if (isFormValid) e.currentTarget.style.background = '#00E654';
@@ -198,6 +203,7 @@ export default function PaymentMethodCard({
               }}
             >
               REVIEW & CONFIRM
+              {isFormValid && <i className="fa fa-arrow-right" style={{ fontSize: 16, color: '#000D94' }} />}
             </button>
           </div>
         )}

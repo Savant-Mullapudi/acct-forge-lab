@@ -15,6 +15,7 @@ export default function Checkout() {
   const [signupFilled, setSignupFilled] = React.useState(false);
   const [addressFilled, setAddressFilled] = React.useState(false);
   const [paymentFilled, setPaymentFilled] = React.useState(false);
+  const [reviewConfirmed, setReviewConfirmed] = React.useState(false);
 
   return (
     <>
@@ -46,10 +47,11 @@ export default function Checkout() {
               open={step === 'payment'}
               onToggle={() => setStep('payment')}
               filled={paymentFilled}
+              onReviewConfirm={() => setReviewConfirmed(true)}
             />
           </div>
           <aside className="aside">
-            <OrderSummary />
+            <OrderSummary subscribeEnabled={reviewConfirmed} />
           </aside>
         </div>
       </div>
