@@ -257,13 +257,15 @@ export default function Login() {
               <span className="lp-toggle-label">Remember me</span>
             </label>
 
-            <a
-              href="mailto:checkout@traceaq.com?subject=Forgot Password"
+            <button
+              type="button"
+              onClick={() => navigate('/reset-password')}
               className="lp-link"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
               data-testid="link-forgot-password"
             >
               Forgot password?
-            </a>
+            </button>
           </div>
 
           <button
