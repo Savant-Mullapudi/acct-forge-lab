@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../integrations/supabase/client";
-import { useToast } from "../hooks/use-toast";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
@@ -21,18 +19,6 @@ export default function Login() {
   const [tPwd, setTPwd] = useState(false);
 
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-    checkAuth();
-  }, [navigate]);
 
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
   const emailError = !emailValid(email)
@@ -40,7 +26,7 @@ export default function Login() {
     : "";
   const pwdError = pwd.trim().length === 0 ? "Password is required" : "";
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTEmail(true);
     setTPwd(true);
@@ -58,46 +44,14 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password: pwd,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              first_name: firstName,
-              last_name: lastName,
-            }
-          }
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Account created!",
-          description: "You've been automatically logged in.",
-        });
-        navigate('/');
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password: pwd,
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
-        navigate('/');
-      }
-    } catch (err: any) {
-      setError(err?.message || (isSignUp ? "Sign up failed" : "Login failed"));
-    } finally {
+    // TODO: Add authentication logic here
+    console.log('Login/Signup attempt:', { email, isSignUp });
+    
+    // Simulate success for now
+    setTimeout(() => {
       setLoading(false);
-    }
+      navigate('/');
+    }, 500);
   }
 
   return (

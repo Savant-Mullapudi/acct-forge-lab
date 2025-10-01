@@ -77,10 +77,6 @@ export default function Success() {
                 <span className="success-detail-label">Date:</span>
                 <span className="success-detail-value">{formattedDate}</span>
               </div>
-              <div className="success-detail-row">
-                <span className="success-detail-label">Payment Method:</span>
-                <span className="success-detail-value">Visa **** 1234</span>
-              </div>
             </div>
           </div>
 
