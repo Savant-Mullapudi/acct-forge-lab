@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import "../styles/login.css";
+import logoFullDark from '@/assets/logo-full-dark.png';
+import loginBackground from '@/assets/login-background.png';
 
 export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -103,7 +105,7 @@ export default function Login() {
       <div className="lp-col lp-col-form">
         <div className="lp-brand">
           <img
-            src="src/assets/logo-full-dark.png"
+            src={logoFullDark}
             alt="Trace AQ | Aero"
             width={350}
             height={50}
@@ -374,7 +376,7 @@ export default function Login() {
 
       <div className="lp-col lp-col-art" aria-hidden>
         <img
-          src="src/assets/login-background.png"
+          src={loginBackground}
           alt=""
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
