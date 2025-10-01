@@ -281,19 +281,23 @@
 /* RIGHT column */
 .lp-col-art {
   position: relative;
-  overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 0;
+  justify-content: center; 
+  flex: 1;                 
   height: 100vh;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 .lp-col-art img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;        
 }
+
 
 @media (max-width: 1400px) {
   .lp-wrap {
