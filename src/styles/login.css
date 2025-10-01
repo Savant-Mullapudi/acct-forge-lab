@@ -1,8 +1,7 @@
 /* Layout */
 .lp-wrap {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 40% 60%;
+  display: flex;
   background: #fff;
 }
 
@@ -19,7 +18,9 @@
   min-height: 100vh;
   margin-left: 40px;
   padding: 28px 32px;
-  max-width: 100%;
+  width: 576px;
+  max-width: 576px;
+  flex-shrink: 0;
 }
 
 .lp-col-form > .lp-brand,
@@ -282,7 +283,8 @@
   display: flex;
   align-items: center;
   justify-content: center; 
-  flex: 1;                 
+  flex: 1;
+  min-width: 0;
   height: 100vh;
   padding: 0;
   margin: 0;
@@ -299,12 +301,15 @@
 
 @media (max-width: 1400px) {
   .lp-wrap {
-    grid-template-columns: 1fr;
+    display: block;
   }
   .lp-col-art {
     display: none;
   }
   .lp-col-form {
-    margin-left: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 576px;
   }
 }
