@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "../integrations/supabase/client";
+import { useToast } from "../hooks/use-toast";
 import "../styles/login.css";
 import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
