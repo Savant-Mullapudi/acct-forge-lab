@@ -34,13 +34,14 @@ The application runs on port 5000 with the following configuration:
 ## Recent Changes
 
 ### 2025-10-01
-- **Password Reset Feature**: Implemented 6-digit OTP password reset flow
-  - Users receive a 6-digit code via email instead of reset links
-  - 3-step process: email → code verification → new password
-  - Uses Supabase `signInWithOtp()` for code delivery and `verifyOtp()` for verification
+- **Password Reset Feature**: Implemented 6-digit code password reset flow with Resend email delivery
+  - Users receive a 6-digit code via email (Resend API) instead of reset links
+  - 3-step process on same page: email → code verification → new password
+  - Custom Supabase Edge Functions handle code generation, email sending, and verification
   - Floating labels with blue focus states matching login page design
-  - Generic messaging to prevent account enumeration on client-side
-  - **Security Note**: API-level account enumeration remains possible via direct Supabase calls (trade-off of client-side Supabase auth)
+  - Secure database table stores codes with 15-minute expiration
+  - Generic messaging prevents account enumeration on client-side
+  - RLS policies ensure only service role can access reset codes table
 
 ### 2025-09-30
 - Installed npm dependencies
