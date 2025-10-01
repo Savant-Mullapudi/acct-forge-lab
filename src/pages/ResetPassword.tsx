@@ -40,17 +40,18 @@ export default function ResetPassword() {
     setError(null);
 
     try {
-      await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          shouldCreateUser: false,
-        },
+      const { error: functionError } = await supabase.functions.invoke('send-reset-code', {
+        body: { email: email.trim() },
       });
+
+      if (functionError) {
+        console.error('Send code error:', functionError);
+      }
 
       setStep(2);
       setLoading(false);
     } catch (error) {
-      console.error('Send OTP error:', error);
+      console.error('Send code error:', error);
       setStep(2);
       setLoading(false);
     }
@@ -68,26 +69,8 @@ export default function ResetPassword() {
     setLoading(true);
     setError(null);
 
-    try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email: email.trim(),
-        token: otp,
-        type: 'email',
-      });
-
-      if (verifyError) {
-        setError("Invalid or expired code. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      setStep(3);
-      setLoading(false);
-    } catch (error) {
-      console.error('Verify OTP error:', error);
-      setError("An unexpected error occurred. Please try again.");
-      setLoading(false);
-    }
+    setStep(3);
+    setLoading(false);
   }
 
   async function handleResetPassword(e: React.FormEvent) {
@@ -109,20 +92,23 @@ export default function ResetPassword() {
     setError(null);
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
+      const { data, error: verifyError } = await supabase.functions.invoke('verify-reset-code', {
+        body: { 
+          email: email.trim(),
+          code: otp,
+          newPassword: newPassword,
+        },
       });
 
-      if (updateError) {
-        setError("Unable to update password. Please try again.");
+      if (verifyError || data?.error) {
+        setError(data?.error || "Invalid or expired code. Please try again.");
         setLoading(false);
         return;
       }
 
-      await supabase.auth.signOut();
       navigate('/login');
     } catch (error) {
-      console.error('Update password error:', error);
+      console.error('Reset password error:', error);
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
