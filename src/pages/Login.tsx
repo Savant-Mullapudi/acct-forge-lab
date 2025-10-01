@@ -93,9 +93,9 @@ export default function Login() {
         }
       }
 
-      // Successful login - navigate to home/checkout
+      // Successful login - navigate to Aero
       setLoading(false);
-      navigate('/');
+      navigate('/https://aero.traceaq.com/');
     } catch (error) {
       console.error('Unexpected login error:', error);
       setError("An unexpected error occurred. Please try again.");
