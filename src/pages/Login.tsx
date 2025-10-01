@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
+import { supabase } from "@/integrations/supabase/client";
+import "../styles/login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -23,7 +25,7 @@ export default function Login() {
     : "";
   const pwdError = pwd.trim().length === 0 ? "Password is required" : "";
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTEmail(true);
     setTPwd(true);
@@ -36,14 +38,70 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    // TODO: Add authentication logic here
-    console.log('Login attempt:', { email });
-    
-    // Simulate success for now
-    setTimeout(() => {
+    try {
+      // Authenticate with Supabase
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: pwd,
+      });
+
+      if (authError) {
+        // Generic error message to prevent user enumeration
+        setError("Invalid email or password. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const user = data.user;
+      if (!user) {
+        setError("An unexpected error occurred. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Verify profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Profile check error:', profileError);
+        await supabase.auth.signOut();
+        setError("Unable to verify account. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
+      // Create profile if it doesn't exist (using user metadata from signup)
+      if (!profile) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email!,
+            first_name: user.user_metadata?.first_name ?? null,
+            last_name: user.user_metadata?.last_name ?? null,
+          });
+
+        if (insertError) {
+          console.error('Profile creation error:', insertError);
+          await supabase.auth.signOut();
+          setError("Unable to set up account. Please contact support.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Successful login - navigate to home/checkout
       setLoading(false);
       navigate('/');
-    }, 500);
+    } catch (error) {
+      console.error('Unexpected login error:', error);
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
