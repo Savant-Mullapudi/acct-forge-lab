@@ -1,5 +1,6 @@
 import React from "react";
 import { useStripe, useElements } from '@stripe/react-stripe-js';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import OrderSummary from './OrderSummary';
 
@@ -14,6 +15,7 @@ type Props = {
 const OrderSummaryWithPayment: React.FC<Props> = (props) => {
   const stripe = useStripe();
   const elements = useElements();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = React.useState(false);
 
@@ -39,12 +41,10 @@ const OrderSummaryWithPayment: React.FC<Props> = (props) => {
     setIsProcessing(true);
 
     try {
-      // Confirm payment with Stripe
-      const { error } = await stripe.confirmPayment({
+      // Confirm payment with Stripe without redirect (to avoid iframe issues)
+      const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/success`,
-        },
+        redirect: 'if_required',
       });
 
       if (error) {
@@ -54,8 +54,10 @@ const OrderSummaryWithPayment: React.FC<Props> = (props) => {
           variant: "destructive",
         });
         setIsProcessing(false);
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Payment successful, navigate to success page
+        navigate('/success');
       }
-      // If no error, user will be redirected to return_url
     } catch (error) {
       console.error("Payment error:", error);
       toast({
