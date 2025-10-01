@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PaymentMethodCard({
   open,
@@ -7,59 +9,32 @@ export default function PaymentMethodCard({
   filled,
   onReviewConfirm,
 }: { open: boolean; onToggle: () => void; filled: boolean; onReviewConfirm?: () => void }) {
-  const [cardNumber, setCardNumber] = React.useState('');
-  const [expiry, setExpiry] = React.useState('');
-  const [cvv, setCvv] = React.useState('');
-  const [cardholderName, setCardholderName] = React.useState('');
+  const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isPaymentReady, setIsPaymentReady] = React.useState(false);
+  const stripe = useStripe();
+  const elements = useElements();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Format card number with spaces every 4 digits
-  const formatCardNumber = (value: string) => {
-    const cleaned = value.replace(/\s/g, '');
-    const match = cleaned.match(/.{1,4}/g);
-    return match ? match.join(' ') : cleaned;
-  };
-
-  // Format expiry as MM/YY
-  const formatExpiry = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4);
+  const handleReviewConfirm = (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    if (!isPaymentReady) {
+      toast({
+        title: "Payment Method Required",
+        description: "Please select a payment method to continue.",
+        variant: "destructive",
+      });
+      return;
     }
-    return cleaned;
-  };
 
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\s/g, '');
-    if (/^\d*$/.test(value) && value.length <= 16) {
-      setCardNumber(formatCardNumber(value));
+    // Just enable the subscribe button
+    if (onReviewConfirm) {
+      onReviewConfirm();
     }
   };
 
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (value.length <= 4) {
-      setExpiry(formatExpiry(value));
-    }
-  };
-
-  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value) && value.length <= 4) {
-      setCvv(value);
-    }
-  };
-
-  const handleReviewConfirm = () => {
-    onReviewConfirm?.();
-  };
-
-  // Validate all payment fields are filled and properly formatted
-  const isFormValid = 
-    cardNumber.replace(/\s/g, '').length === 16 && 
-    expiry.length === 5 && 
-    cvv.length >= 3 && 
-    cardholderName.trim() !== '';
+  const isFormValid = isPaymentReady && !isProcessing;
 
   return (
     <section className={`card ${open ? 'is-open' : ''}`}>
@@ -75,133 +50,26 @@ export default function PaymentMethodCard({
         </div>
 
         {open && (
-          <div style={{ marginTop: 20 }}>
-            {/* Card option with radio button */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 12, 
+          <form onSubmit={handleReviewConfirm} style={{ marginTop: 20 }}>
+            {/* Payment method label */}
+            <div style={{ fontSize: 14, fontWeight: 500, color: '#111', marginBottom: 12 }}>
+              Choose your payment method
+            </div>
+            
+            {/* Stripe Payment Element - supports cards, Cash App Pay, Klarna, Amazon Pay, and more */}
+            <div style={{
               padding: '16px',
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
-              marginBottom: 20,
-              background: '#fff'
+              background: '#fff',
+              marginBottom: 16,
             }}>
-              <div style={{
-                width: 20,
-                height: 20,
-                borderRadius: '50%',
-                border: '2px solid #2563eb',
-                background: '#2563eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <div style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: '#fff'
-                }} />
-              </div>
-              <i className="fa fa-credit-card" style={{ fontSize: 20, color: '#111' }} />
-              <span style={{ fontSize: 15, fontWeight: 500, color: '#111' }}>Card</span>
-            </div>
-
-            {/* Card information label */}
-            <div style={{ fontSize: 14, fontWeight: 500, color: '#111', marginBottom: 12 }}>
-              Card information
-            </div>
-            
-            <div style={{ display: 'grid', gap: 12 }}>
-              {/* Card number with inline logos */}
-              <div className="field" style={{ position: 'relative' }}>
-                <input
-                  className="input"
-                  placeholder=" "
-                  aria-label="card number"
-                  value={cardNumber}
-                  onChange={handleCardNumberChange}
-                  maxLength={19}
-                  style={{ paddingRight: 150 }}
-                  data-testid="input-card-number"
-                />
-                <label className="floating-label">1234 1234 1234 1234</label>
-                <div style={{ 
-                  position: 'absolute', 
-                  right: 12, 
-                  top: '50%', 
-                  transform: 'translateY(-50%)',
-                  display: 'flex', 
-                  gap: 6, 
-                  alignItems: 'center' 
-                }}>
-                  <i className="fa fa-cc-mastercard" style={{ fontSize: 24, color: '#EB001B' }} aria-label="Mastercard" />
-                  <i className="fa fa-cc-visa" style={{ fontSize: 24, color: '#1434CB' }} aria-label="Visa" />
-                  <i className="fa fa-cc-amex" style={{ fontSize: 24, color: '#006FCF' }} aria-label="American Express" />
-                  <i className="fa fa-cc-discover" style={{ fontSize: 24, color: '#FF6000' }} aria-label="Discover" />
-                </div>
-              </div>
-
-              {/* Expiry and CVV row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="field">
-                  <input
-                    className="input"
-                    placeholder=" "
-                    aria-label="expiry"
-                    value={expiry}
-                    onChange={handleExpiryChange}
-                    maxLength={5}
-                    data-testid="input-expiry"
-                  />
-                  <label className="floating-label">MM / YY</label>
-                </div>
-
-                <div className="field" style={{ position: 'relative' }}>
-                  <input
-                    className="input"
-                    placeholder=" "
-                    aria-label="cvc"
-                    type="password"
-                    value={cvv}
-                    onChange={handleCvvChange}
-                    maxLength={4}
-                    style={{ paddingRight: 40 }}
-                    data-testid="input-cvv"
-                  />
-                  <label className="floating-label">CVC</label>
-                  <i className="fa fa-lock" 
-                    style={{ 
-                      position: 'absolute', 
-                      right: 12, 
-                      top: '50%', 
-                      transform: 'translateY(-50%)',
-                      fontSize: 14, 
-                      color: '#9ca3af' 
-                    }} 
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Cardholder name section */}
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 500, color: '#111', marginBottom: 12 }}>
-                Cardholder name
-              </div>
-              <div className="field">
-                <input
-                  className="input"
-                  placeholder=" "
-                  aria-label="cardholder name"
-                  value={cardholderName}
-                  onChange={(e) => setCardholderName(e.target.value)}
-                  data-testid="input-cardholder-name"
-                />
-                <label className="floating-label">Full name on card</label>
-              </div>
+              <PaymentElement
+                options={{
+                  layout: 'tabs',
+                }}
+                onReady={() => setIsPaymentReady(true)}
+              />
             </div>
 
             {/* Authorization text */}
@@ -211,16 +79,16 @@ export default function PaymentMethodCard({
               marginTop: 16,
               lineHeight: 1.5
             }}>
-              By subscribing, you authorize Trace Air Quality, Inc. to charge your card according to the terms, until you cancel.
+              By subscribing, you authorize Trace Air Quality, Inc. to charge your payment method according to the terms, until you cancel.
             </div>
 
-            {/* Review & Confirm button */}
+            {/* Continue button */}
             <button 
-              onClick={handleReviewConfirm}
+              type="submit"
               disabled={!isFormValid}
-              data-testid="button-review-confirm"
+              data-testid="button-continue"
               style={{
-                width: '100%',
+                width: '50%',
                 marginTop: 20,
                 padding: '12px 16px',
                 border: 'none',
@@ -242,7 +110,7 @@ export default function PaymentMethodCard({
             >
               REVIEW & CONFIRM
             </button>
-          </div>
+          </form>
         )}
       </div>
     </section>

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { addMonths } from "date-fns";
 import '../styles/payment-success.css';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -26,8 +28,24 @@ function CheckIcon() {
 }
 
 export default function Success() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [userEmail, setUserEmail] = useState<string>('');
+  const amount = searchParams.get('amount') || '229.00';
   const today = new Date();
   const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+  const nextPaymentDate = addMonths(today, 1);
+  const formattedNextPaymentDate = `${String(nextPaymentDate.getMonth() + 1).padStart(2, '0')}/${String(nextPaymentDate.getDate()).padStart(2, '0')}/${nextPaymentDate.getFullYear()}`;
+
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUserEmail();
+  }, []);
 
   return (
     <>
@@ -58,24 +76,24 @@ export default function Success() {
             <div className="success-details-list">
               <div className="success-detail-row">
                 <span className="success-detail-label">Amount:</span>
-                <span className="success-detail-value">$229.00</span>
+                <span className="success-detail-value">${parseFloat(amount).toFixed(2)}</span>
               </div>
               <div className="success-detail-row">
                 <span className="success-detail-label">Date:</span>
                 <span className="success-detail-value">{formattedDate}</span>
               </div>
               <div className="success-detail-row">
-                <span className="success-detail-label">Payment Method:</span>
-                <span className="success-detail-value">Visa **** 1234</span>
+                <span className="success-detail-label">Next Payment Date:</span>
+                <span className="success-detail-value">{formattedNextPaymentDate}</span>
               </div>
             </div>
           </div>
 
           <p className="success-confirmation-text">
-            A confirmation email has been sent to checkout@gmail.com
+            A confirmation email has been sent to {userEmail || 'your email'}
           </p>
 
-          <button className="success-button" onClick={() => window.location.href = '/login'}>
+          <button className="success-button" onClick={() => navigate('/login')}>
             GO TO AERO
           </button>
         </main>

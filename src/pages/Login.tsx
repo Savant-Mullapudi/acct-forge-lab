@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
+import logoFullDark from '@/assets/logo-full-dark.png';
+import loginBackground from '@/assets/login-background.png';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,13 +15,15 @@ export default function Login() {
   const [tEmail, setTEmail] = useState(false);
   const [tPwd, setTPwd] = useState(false);
 
+  const navigate = useNavigate();
+
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
   const emailError = !emailValid(email)
     ? "Please enter a valid email address"
     : "";
   const pwdError = pwd.trim().length === 0 ? "Password is required" : "";
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTEmail(true);
     setTPwd(true);
@@ -31,14 +35,15 @@ export default function Login() {
 
     setLoading(true);
     setError(null);
-    try {
-      // TODO: call your real login endpoint
-      throw new Error("Invalid email and password combination");
-    } catch (err: any) {
-      setError(err?.message || "Login failed");
-    } finally {
+
+    // TODO: Add authentication logic here
+    console.log('Login attempt:', { email });
+    
+    // Simulate success for now
+    setTimeout(() => {
       setLoading(false);
-    }
+      navigate('/');
+    }, 500);
   }
 
   return (
@@ -46,14 +51,16 @@ export default function Login() {
       <div className="lp-col lp-col-form">
         <div className="lp-brand">
           <img
-            src="src/assets/logo-full-dark.png"
+            src={logoFullDark}
             alt="Trace AQ | Aero"
             width={350}
             height={50}
           />
         </div>
 
-        <h1 className="lp-title lp-title-center">Log in to your account</h1>
+        <h1 className="lp-title lp-title-center">
+          Log in to your account
+        </h1>
 
         {error && (
           <div
@@ -213,9 +220,15 @@ export default function Login() {
 
           <p className="lp-small lp-center">
             Don't have an account?{" "}
-            <Link to="/checkout" className="lp-link" data-testid="link-signup">
+            <button
+              type="button"
+              onClick={() => navigate('/checkout')}
+              className="lp-link"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+              data-testid="link-toggle-mode"
+            >
               Sign up
-            </Link>
+            </button>
           </p>
         </form>
 
@@ -224,6 +237,7 @@ export default function Login() {
             <a
               href="mailto:checkout@traceaq.com?subject=Help Request"
               data-testid="link-help"
+              style={{ color: "#2563eb"}}
             >
               Help
             </a>
@@ -233,6 +247,7 @@ export default function Login() {
               target="_blank"
               rel="noreferrer"
               data-testid="link-terms"
+              style={{ color: "#2563eb"}}
             >
               Terms
             </a>
@@ -242,6 +257,7 @@ export default function Login() {
               target="_blank"
               rel="noreferrer"
               data-testid="link-privacy"
+              style={{ color: "#2563eb"}}
             >
               Privacy
             </a>
@@ -271,7 +287,7 @@ export default function Login() {
 
       <div className="lp-col lp-col-art" aria-hidden>
         <img
-          src="src/assets/login-background.png"
+          src={loginBackground}
           alt=""
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />

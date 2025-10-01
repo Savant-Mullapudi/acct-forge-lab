@@ -1,6 +1,8 @@
 import React from "react";
 import "font-awesome/css/font-awesome.min.css";
 import productDetailsImg from "@/assets/product-details.png";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type Props = {
   productName?: string;
@@ -8,6 +10,9 @@ type Props = {
   unitPrice?: number;
   currency?: string;
   subscribeEnabled?: boolean;
+  onSubscribe?: (total: number) => void;
+  isProcessing?: boolean;
+  onCouponApplied?: (couponCode: string | null) => void;
 };
 
 const money = (n: number, currency = "USD") =>
@@ -19,10 +24,95 @@ const OrderSummary: React.FC<Props> = ({
   unitPrice = 229,
   currency = "USD",
   subscribeEnabled = false,
+  onSubscribe,
+  isProcessing = false,
+  onCouponApplied,
 }: Props) => {
   const [showDesc, setShowDesc] = React.useState(false);
   const [coupon, setCoupon] = React.useState("");
   const [showCouponInput, setShowCouponInput] = React.useState(false);
+  const [appliedCoupon, setAppliedCoupon] = React.useState<{
+    percentOff?: number;
+    amountOff?: number;
+    currency?: string;
+    name?: string;
+  } | null>(null);
+  const [isVerifying, setIsVerifying] = React.useState(false);
+
+  const handleApplyCoupon = async () => {
+    const code = coupon.trim();
+    if (!code) {
+      toast.error("Please enter a promo code");
+      return;
+    }
+    if (code.length > 64) {
+      toast.error("Promo code is too long");
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-coupon", {
+        body: { couponCode: code },
+      });
+
+      if (error) {
+        let message = error.message || "Failed to verify promo code";
+        try {
+          const res = (error as any)?.context?.response as Response | undefined;
+          if (res) {
+            const text = await res.text();
+            try {
+              const json = JSON.parse(text);
+              if (json?.error) message = json.error;
+            } catch {
+              if (text) message = text;
+            }
+          }
+        } catch {}
+        throw new Error(message);
+      }
+
+      if (data?.valid) {
+        setAppliedCoupon(data);
+        onCouponApplied?.(code);
+        toast.success(`Promo code "${code}" applied successfully!`);
+      } else {
+        const msg = data?.error || "Invalid promo code";
+        setAppliedCoupon(null);
+        onCouponApplied?.(null);
+        toast.error(msg);
+      }
+    } catch (error: any) {
+      console.error("Error verifying coupon:", error);
+      toast.error(error?.message || "Failed to verify promo code");
+      setAppliedCoupon(null);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Calculate discount
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    
+    const subtotal = unitPrice * seats;
+    
+    if (appliedCoupon.percentOff) {
+      return (subtotal * appliedCoupon.percentOff) / 100;
+    }
+    
+    if (appliedCoupon.amountOff) {
+      // Convert cents to dollars if needed
+      return appliedCoupon.amountOff / 100;
+    }
+    
+    return 0;
+  };
+
+  const discount = calculateDiscount();
+  const subtotal = unitPrice * seats;
+  const total = Math.max(0, subtotal - discount);
 
   return (
     <aside className="aside">
@@ -107,15 +197,31 @@ const OrderSummary: React.FC<Props> = ({
           <input
             className="input"
             style={{ width: "300px", fontSize: 13, padding: "8px 8px" }}
-            placeholder="Coupon code"
+            placeholder="Promo code"
             value={coupon}
             onChange={(e) => setCoupon(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
             aria-label="Coupon code"
+            disabled={isVerifying}
           />
-          <button type="button" className="applyBtn">
-            Apply
+          <button 
+            type="button" 
+            className="applyBtn"
+            onClick={handleApplyCoupon}
+            disabled={isVerifying}
+          >
+            {isVerifying ? "Verifying..." : "Apply"}
           </button>
         </div>
+
+        {appliedCoupon && (
+          <div className="kv" style={{ color: "#16a34a", fontWeight: 500 }}>
+            <span className="k">
+              Discount{appliedCoupon.percentOff ? ` (${appliedCoupon.percentOff}% off)` : ""}
+            </span>
+            <span className="v">-{money(discount, currency)}</span>
+          </div>
+        )}
 
         <div
           className="summaryLine totalLine"
@@ -126,24 +232,26 @@ const OrderSummary: React.FC<Props> = ({
           }}
         >
           <span>Total due today</span>
-          <span>{money(unitPrice * seats, currency)}</span>
+          <span style={{ fontWeight: appliedCoupon ? 600 : 400 }}>
+            {money(total, currency)}
+          </span>
         </div>
 
         <button
           type="button"
           className="btnSubscribe"
-          onClick={() => (window.location.href = "/success")}
-          disabled={!subscribeEnabled}
+          onClick={() => onSubscribe?.(total)}
+          disabled={!subscribeEnabled || isProcessing}
           data-testid="button-subscribe"
           style={{
-            background: subscribeEnabled ? "#00FF5E" : "#d1d5db",
-            color: subscribeEnabled ? "#000" : "#9ca3af",
-            cursor: subscribeEnabled ? "pointer" : "not-allowed",
-            opacity: subscribeEnabled ? 1 : 0.6,
+            background: (subscribeEnabled && !isProcessing) ? "#00FF5E" : "#d1d5db",
+            color: (subscribeEnabled && !isProcessing) ? "#000" : "#9ca3af",
+            cursor: (subscribeEnabled && !isProcessing) ? "pointer" : "not-allowed",
+            opacity: (subscribeEnabled && !isProcessing) ? 1 : 0.6,
             fontSize: 14,
           }}
         >
-          SUBSCRIBE <span className="arrow">›</span>
+          {isProcessing ? 'PROCESSING...' : 'SUBSCRIBE'} {!isProcessing && <span className="arrow">›</span>}
         </button>
       </section>
     </aside>

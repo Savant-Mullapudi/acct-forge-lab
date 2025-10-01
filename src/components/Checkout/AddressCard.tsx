@@ -1,4 +1,5 @@
 import React from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 type Address = {
   line1?: string;
@@ -198,13 +199,73 @@ export default function AddressCard({
   const markAllTouched = () =>
     setTouched({ line1: true, city: true, state: true, postalCode: true, country: true });
 
-  function handleContinue() {
+  async function handleContinue() {
     if (!requiredFilled) {
       markAllTouched();
       return;
     }
-    setSaved({ ...addr });
-    onContinue();
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('Please sign up first');
+        return;
+      }
+
+      // Check if address already exists for this user
+      const { data: existingAddress } = await supabase
+        .from('addresses')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (existingAddress) {
+        // Update existing address
+        const { error } = await supabase
+          .from('addresses')
+          .update({
+            address_line1: addr.line1 || '',
+            address_line2: addr.line2 || null,
+            city: addr.city || '',
+            state: addr.state || '',
+            postal_code: addr.postalCode || '',
+            country: addr.country || 'United States',
+          })
+          .eq('id', existingAddress.id);
+
+        if (error) {
+          console.error('Error updating address:', error);
+          alert('Failed to save address. Please try again.');
+          return;
+        }
+      } else {
+        // Insert new address
+        const { error } = await supabase
+          .from('addresses')
+          .insert({
+            user_id: session.user.id,
+            address_line1: addr.line1 || '',
+            address_line2: addr.line2 || null,
+            city: addr.city || '',
+            state: addr.state || '',
+            postal_code: addr.postalCode || '',
+            country: addr.country || 'United States',
+          });
+
+        if (error) {
+          console.error('Error saving address:', error);
+          alert('Failed to save address. Please try again.');
+          return;
+        }
+      }
+
+      setSaved({ ...addr });
+      onContinue();
+    } catch (error) {
+      console.error('Error in handleContinue:', error);
+      alert('An error occurred. Please try again.');
+    }
   }
 
   return (
@@ -393,9 +454,6 @@ export default function AddressCard({
                 </a>
               </div>
 
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
-                The address will be used for billing and receipts.
-              </div>
             </div>
           </div>
         )}
