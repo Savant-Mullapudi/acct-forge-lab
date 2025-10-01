@@ -5,11 +5,8 @@ import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
 
 export default function Login() {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,16 +33,11 @@ export default function Login() {
       return;
     }
 
-    if (isSignUp && pwd.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     // TODO: Add authentication logic here
-    console.log('Login/Signup attempt:', { email, isSignUp });
+    console.log('Login attempt:', { email });
     
     // Simulate success for now
     setTimeout(() => {
@@ -67,7 +59,7 @@ export default function Login() {
         </div>
 
         <h1 className="lp-title lp-title-center">
-          {isSignUp ? "Create your account" : "Log in to your account"}
+          Log in to your account
         </h1>
 
         {error && (
@@ -96,39 +88,6 @@ export default function Login() {
         )}
 
         <form className="lp-form lp-form-grow" onSubmit={onSubmit} noValidate>
-          {isSignUp && (
-            <div className="lp-row-between" style={{ gap: "12px", marginBottom: "16px" }}>
-              <div className="field" style={{ flex: 1 }}>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder=" "
-                  autoComplete="given-name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required={isSignUp}
-                />
-                <label className="floating-label">
-                  First Name <span className="lp-req">*</span>
-                </label>
-              </div>
-              <div className="field" style={{ flex: 1 }}>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder=" "
-                  autoComplete="family-name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required={isSignUp}
-                />
-                <label className="floating-label">
-                  Last Name <span className="lp-req">*</span>
-                </label>
-              </div>
-            </div>
-          )}
-
           <div className="field">
             <input
               className={`input ${tEmail && emailError ? "input-error" : ""}`}
@@ -256,24 +215,19 @@ export default function Login() {
             disabled={loading}
             data-testid="button-login"
           >
-            {loading ? (isSignUp ? "SIGNING UP…" : "LOGGING IN…") : (isSignUp ? "SIGN UP" : "LOG IN")}
+            {loading ? "LOGGING IN…" : "LOG IN"}
           </button>
 
           <p className="lp-small lp-center">
-            {isSignUp ? "Already have an account? " : "Don't have an account? "}
+            Don't have an account?{" "}
             <button
               type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-                setTEmail(false);
-                setTPwd(false);
-              }}
+              onClick={() => navigate('/checkout')}
               className="lp-link"
               style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
               data-testid="link-toggle-mode"
             >
-              {isSignUp ? "Log in" : "Sign up"}
+              Sign up
             </button>
           </p>
         </form>
