@@ -12,11 +12,8 @@ CREATE TABLE IF NOT EXISTS public.password_reset_codes (
 -- Enable Row Level Security
 ALTER TABLE public.password_reset_codes ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow service role to manage reset codes
-CREATE POLICY "Service role can manage reset codes"
-ON public.password_reset_codes
-FOR ALL
-USING (true);
+-- No policies needed - service role bypasses RLS and has full access
+-- Anon and authenticated users are blocked by default
 
 -- Create index for faster lookups
 CREATE INDEX idx_password_reset_codes_email_code ON public.password_reset_codes(email, code);
