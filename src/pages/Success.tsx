@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { addMonths } from "date-fns";
 import '../styles/payment-success.css';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -33,6 +34,8 @@ export default function Success() {
   const amount = searchParams.get('amount') || '229.00';
   const today = new Date();
   const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+  const nextPaymentDate = addMonths(today, 1);
+  const formattedNextPaymentDate = `${String(nextPaymentDate.getMonth() + 1).padStart(2, '0')}/${String(nextPaymentDate.getDate()).padStart(2, '0')}/${nextPaymentDate.getFullYear()}`;
 
   useEffect(() => {
     const getUserEmail = async () => {
@@ -78,6 +81,10 @@ export default function Success() {
               <div className="success-detail-row">
                 <span className="success-detail-label">Date:</span>
                 <span className="success-detail-value">{formattedDate}</span>
+              </div>
+              <div className="success-detail-row">
+                <span className="success-detail-label">Next Payment Date:</span>
+                <span className="success-detail-value">{formattedNextPaymentDate}</span>
               </div>
             </div>
           </div>
