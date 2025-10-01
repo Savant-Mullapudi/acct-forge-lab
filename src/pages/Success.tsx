@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import '../styles/payment-success.css';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -27,8 +28,19 @@ function CheckIcon() {
 
 export default function Success() {
   const navigate = useNavigate();
+  const [userEmail, setUserEmail] = useState<string>('');
   const today = new Date();
   const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUserEmail();
+  }, []);
 
   return (
     <>
@@ -73,7 +85,7 @@ export default function Success() {
           </div>
 
           <p className="success-confirmation-text">
-            A confirmation email has been sent to checkout@gmail.com
+            A confirmation email has been sent to {userEmail || 'your email'}
           </p>
 
           <button className="success-button" onClick={() => navigate('/login')}>
