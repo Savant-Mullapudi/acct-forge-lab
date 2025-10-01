@@ -40,24 +40,18 @@ export default function ResetPassword() {
     setError(null);
 
     try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
           shouldCreateUser: false,
         },
       });
 
-      if (otpError) {
-        setError("Unable to send verification code. Please try again.");
-        setLoading(false);
-        return;
-      }
-
       setStep(2);
       setLoading(false);
     } catch (error) {
       console.error('Send OTP error:', error);
-      setError("An unexpected error occurred. Please try again.");
+      setStep(2);
       setLoading(false);
     }
   }
@@ -218,7 +212,7 @@ export default function ResetPassword() {
         {step === 2 && (
           <>
             <h1 className="rp-title">Enter verification code</h1>
-            <p className="rp-subtitle">We sent a 6-digit code to <strong>{email}</strong></p>
+            <p className="rp-subtitle">If an account exists for <strong>{email}</strong>, we've sent a 6-digit code</p>
 
             {error && (
               <div className="rp-error" role="alert" data-testid="text-error-message">

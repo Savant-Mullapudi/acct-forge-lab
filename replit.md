@@ -31,7 +31,18 @@ The application runs on port 5000 with the following configuration:
 - **Workflow**: "Start application" runs `npm run dev`
 - **Deployment**: Configured for autoscale deployment with build + preview
 
-## Recent Changes (2025-09-30)
+## Recent Changes
+
+### 2025-10-01
+- **Password Reset Feature**: Implemented 6-digit OTP password reset flow
+  - Users receive a 6-digit code via email instead of reset links
+  - 3-step process: email → code verification → new password
+  - Uses Supabase `signInWithOtp()` for code delivery and `verifyOtp()` for verification
+  - Floating labels with blue focus states matching login page design
+  - Generic messaging to prevent account enumeration on client-side
+  - **Security Note**: API-level account enumeration remains possible via direct Supabase calls (trade-off of client-side Supabase auth)
+
+### 2025-09-30
 - Installed npm dependencies
 - Updated vite.config.ts to use port 5000 and host 0.0.0.0
 - Added preview server configuration for deployment
