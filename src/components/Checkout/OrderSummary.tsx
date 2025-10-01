@@ -10,7 +10,7 @@ type Props = {
   unitPrice?: number;
   currency?: string;
   subscribeEnabled?: boolean;
-  onSubscribe?: () => void;
+  onSubscribe?: (total: number) => void;
   isProcessing?: boolean;
   onCouponApplied?: (couponCode: string | null) => void;
 };
@@ -240,7 +240,7 @@ const OrderSummary: React.FC<Props> = ({
         <button
           type="button"
           className="btnSubscribe"
-          onClick={onSubscribe}
+          onClick={() => onSubscribe?.(total)}
           disabled={!subscribeEnabled || isProcessing}
           data-testid="button-subscribe"
           style={{

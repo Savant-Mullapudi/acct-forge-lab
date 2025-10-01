@@ -20,7 +20,7 @@ const OrderSummaryWithPayment: React.FC<Props> = (props) => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = React.useState(false);
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (total: number) => {
     if (!stripe || !elements) {
       toast({
         title: "Error",
@@ -57,7 +57,7 @@ const OrderSummaryWithPayment: React.FC<Props> = (props) => {
         setIsProcessing(false);
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Payment successful, navigate to success page
-        navigate('/success');
+        navigate(`/success?amount=${total}`);
       }
     } catch (error) {
       console.error("Payment error:", error);

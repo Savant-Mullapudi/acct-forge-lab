@@ -28,7 +28,9 @@ function CheckIcon() {
 
 export default function Success() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [userEmail, setUserEmail] = useState<string>('');
+  const amount = searchParams.get('amount') || '229.00';
   const today = new Date();
   const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
 
@@ -71,7 +73,7 @@ export default function Success() {
             <div className="success-details-list">
               <div className="success-detail-row">
                 <span className="success-detail-label">Amount:</span>
-                <span className="success-detail-value">$229.00</span>
+                <span className="success-detail-value">${parseFloat(amount).toFixed(2)}</span>
               </div>
               <div className="success-detail-row">
                 <span className="success-detail-label">Date:</span>
