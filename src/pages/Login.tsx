@@ -95,7 +95,7 @@ export default function Login() {
 
       // Successful login - navigate to Aero
       setLoading(false);
-      navigate('/https://aero.traceaq.com/');
+      window.location.href = "https://aero.traceaq.com/";
     } catch (error) {
       console.error('Unexpected login error:', error);
       setError("An unexpected error occurred. Please try again.");
