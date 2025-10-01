@@ -283,7 +283,6 @@ export default function Login() {
             <a
               href="mailto:checkout@traceaq.com?subject=Help Request"
               data-testid="link-help"
-              style={{ color: "#2563eb", textDecoration: "underline" }}
             >
               Help
             </a>
@@ -293,7 +292,6 @@ export default function Login() {
               target="_blank"
               rel="noreferrer"
               data-testid="link-terms"
-              style={{ color: "#2563eb", textDecoration: "underline" }}
             >
               Terms
             </a>
@@ -303,7 +301,6 @@ export default function Login() {
               target="_blank"
               rel="noreferrer"
               data-testid="link-privacy"
-              style={{ color: "#2563eb", textDecoration: "underline" }}
             >
               Privacy
             </a>
