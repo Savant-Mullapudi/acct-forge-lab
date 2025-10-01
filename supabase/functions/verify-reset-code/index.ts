@@ -9,7 +9,7 @@ const corsHeaders = {
 interface VerifyCodeRequest {
   email: string;
   code: string;
-  newPassword: string;
+  newPassword?: string; // Optional - if not provided, only verify code
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,8 +26,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { email, code, newPassword }: VerifyCodeRequest = await req.json();
     
-    if (!email || !code || !newPassword) {
-      throw new Error("Email, code, and new password are required");
+    if (!email || !code) {
+      throw new Error("Email and code are required");
     }
 
     const { data: resetCodes, error: fetchError } = await supabaseClient
@@ -49,18 +49,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     const resetCode = resetCodes[0];
 
-    await supabaseClient
-      .from('password_reset_codes')
-      .update({ used: true })
-      .eq('id', resetCode.id);
+    // If newPassword is provided, update the password and mark code as used
+    if (newPassword) {
+      await supabaseClient
+        .from('password_reset_codes')
+        .update({ used: true })
+        .eq('id', resetCode.id);
 
-    const { error: updateError } = await supabaseClient.auth.admin.updateUserById(
-      resetCode.user_id,
-      { password: newPassword }
-    );
+      const { error: updateError } = await supabaseClient.auth.admin.updateUserById(
+        resetCode.user_id,
+        { password: newPassword }
+      );
 
-    if (updateError) {
-      throw updateError;
+      if (updateError) {
+        throw updateError;
+      }
     }
 
     return new Response(

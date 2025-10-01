@@ -31,9 +31,12 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Valid email is required");
     }
 
-    const { data: user } = await supabaseClient.auth.admin.getUserByEmail(email);
+    // Try to find user by email using listUsers
+    const { data: usersData } = await supabaseClient.auth.admin.listUsers();
+    const user = usersData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
     
     if (!user) {
+      // Return success even if user doesn't exist (prevent account enumeration)
       return new Response(
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
@@ -44,7 +47,7 @@ const handler = async (req: Request): Promise<Response> => {
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await supabaseClient.from('password_reset_codes').insert({
-      user_id: user.user.id,
+      user_id: user.id,
       email: email.toLowerCase(),
       code: resetCode,
       expires_at: expiresAt.toISOString(),

@@ -69,8 +69,31 @@ export default function ResetPassword() {
     setLoading(true);
     setError(null);
 
-    setStep(3);
-    setLoading(false);
+    try {
+      // Verify the code exists and is valid before proceeding (without password)
+      const { data, error: verifyError } = await supabase.functions.invoke('verify-reset-code', {
+        body: { 
+          email: email.trim(),
+          code: otp,
+          // Don't send newPassword yet - just verify the code
+        },
+      });
+
+      // If code is invalid or expired, show error and stay on step 2
+      if (verifyError || data?.error) {
+        setError(data?.error || "Invalid or expired code. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Code is valid, proceed to step 3
+      setStep(3);
+      setLoading(false);
+    } catch (error) {
+      console.error('Verify code error:', error);
+      setError("Failed to verify code. Please try again.");
+      setLoading(false);
+    }
   }
 
   async function handleResetPassword(e: React.FormEvent) {
