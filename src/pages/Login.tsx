@@ -4,7 +4,6 @@ import "../styles/login.css";
 import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import "../styles/login.css";
 
 export default function Login() {
@@ -14,15 +13,11 @@ export default function Login() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [showResetDialog, setShowResetDialog] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
 
   const [tEmail, setTEmail] = useState(false);
   const [tPwd, setTPwd] = useState(false);
 
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
   const emailError = !emailValid(email)
@@ -106,45 +101,6 @@ export default function Login() {
       console.error('Unexpected login error:', error);
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
-    }
-  }
-
-  async function handlePasswordReset(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!emailValid(resetEmail)) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setResetLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/login`,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Password Reset Email Sent",
-        description: "Check your email for a password reset link.",
-      });
-
-      setShowResetDialog(false);
-      setResetEmail("");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send password reset email.",
-        variant: "destructive",
-      });
-    } finally {
-      setResetLoading(false);
     }
   }
 
@@ -302,15 +258,13 @@ export default function Login() {
               <span className="lp-toggle-label">Remember me</span>
             </label>
 
-            <button
-              type="button"
-              onClick={() => setShowResetDialog(true)}
+            <a
+              href="mailto:checkout@traceaq.com?subject=Forgot Password"
               className="lp-link"
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
               data-testid="link-forgot-password"
             >
               Forgot password?
-            </button>
+            </a>
           </div>
 
           <button
@@ -396,108 +350,6 @@ export default function Login() {
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
       </div>
-
-      {/* Password Reset Dialog */}
-      {showResetDialog && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setShowResetDialog(false)}
-        >
-          <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "8px",
-              padding: "32px",
-              maxWidth: "400px",
-              width: "90%",
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: "600",
-                marginBottom: "16px",
-                color: "#111827",
-              }}
-            >
-              Reset Password
-            </h2>
-            <p
-              style={{
-                fontSize: "14px",
-                color: "#6b7280",
-                marginBottom: "24px",
-              }}
-            >
-              Enter your email address and we'll send you a link to reset your password.
-            </p>
-            <form onSubmit={handlePasswordReset}>
-              <div className="field">
-                <input
-                  className="input"
-                  type="email"
-                  placeholder=" "
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  required
-                />
-                <label className="floating-label">
-                  Email address <span className="lp-req">*</span>
-                </label>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  marginTop: "24px",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setShowResetDialog(false)}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "6px",
-                    backgroundColor: "white",
-                    color: "#374151",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={resetLoading}
-                  className="lp-submit"
-                  style={{
-                    flex: 1,
-                    margin: 0,
-                  }}
-                >
-                  {resetLoading ? "SENDING..." : "SEND RESET LINK"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
