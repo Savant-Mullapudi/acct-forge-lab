@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { addMonths } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import '../styles/payment-success.css';
 import logoDark from '@/assets/logo-dark.png';
 
@@ -31,6 +32,7 @@ export default function Success() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [userEmail, setUserEmail] = useState<string>('');
+  const { toast } = useToast();
   const amount = searchParams.get('amount') || '229.00';
   const today = new Date();
   const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
@@ -38,14 +40,38 @@ export default function Success() {
   const formattedNextPaymentDate = `${String(nextPaymentDate.getMonth() + 1).padStart(2, '0')}/${String(nextPaymentDate.getDate()).padStart(2, '0')}/${nextPaymentDate.getFullYear()}`;
 
   useEffect(() => {
-    const getUserEmail = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) {
-        setUserEmail(user.email);
+    const getUserAndSendEmail = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setUserEmail(user.email);
+          
+          // Send subscription confirmation email
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const { error } = await supabase.functions.invoke('send-subscription-email', {
+              body: { 
+                amount: parseFloat(amount) * 100, // Convert to cents
+                currency: 'USD'
+              },
+            });
+
+            if (error) {
+              console.error('Error sending email:', error);
+              toast({
+                title: "Email Error",
+                description: "Confirmation email could not be sent, but your subscription is active.",
+                variant: "destructive",
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
       }
     };
-    getUserEmail();
-  }, []);
+    getUserAndSendEmail();
+  }, [amount, toast]);
 
   return (
     <>
