@@ -272,7 +272,7 @@
   text-decoration: underline;
 }
 .lp-dot {
-  color: "#2563eb";
+  color: #2563eb;
   font-weight: 300;
 }
 .lp-recaptcha { margin-top: 10px; }
