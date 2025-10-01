@@ -295,7 +295,7 @@
   object-fit: cover;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1400px) {
   .lp-wrap {
     grid-template-columns: 1fr;
   }
