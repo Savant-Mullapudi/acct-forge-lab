@@ -49,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
     }).format(amount / 100);
 
     const emailResponse = await resend.emails.send({
-      from: "Your Company <onboarding@resend.dev>", // Replace with your verified domain
+      from: "Trace AQ <onboarding@resend.dev>", // Replace with your verified domain
       to: [user.email],
       subject: "Subscription Confirmed! 🎉",
       html: `
