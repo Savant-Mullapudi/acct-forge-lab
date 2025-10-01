@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import "../styles/login.css";
 import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
@@ -16,6 +18,18 @@ export default function Login() {
   const [tPwd, setTPwd] = useState(false);
 
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
   const emailError = !emailValid(email)
@@ -23,7 +37,7 @@ export default function Login() {
     : "";
   const pwdError = pwd.trim().length === 0 ? "Password is required" : "";
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTEmail(true);
     setTPwd(true);
@@ -36,14 +50,55 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    // TODO: Add authentication logic here
-    console.log('Login attempt:', { email });
-    
-    // Simulate success for now
-    setTimeout(() => {
+    try {
+      // Attempt to sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password: pwd,
+      });
+
+      if (authError) {
+        // Handle specific auth errors
+        if (authError.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password. Please try again.");
+        } else if (authError.message.includes("Email not confirmed")) {
+          setError("Please confirm your email address before logging in.");
+        } else {
+          setError(authError.message);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Verify user exists in profiles database
+      if (authData.user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (profileError || !profile) {
+          // User authenticated but no profile exists - sign them out
+          await supabase.auth.signOut();
+          setError("Account not found. Please sign up first.");
+          setLoading(false);
+          return;
+        }
+
+        // Success - user authenticated and profile exists
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${profile.first_name || 'User'}!`,
+        });
+        navigate('/');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
       setLoading(false);
-      navigate('/');
-    }, 500);
+    }
   }
 
   return (
