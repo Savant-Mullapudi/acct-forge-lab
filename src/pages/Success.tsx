@@ -88,7 +88,7 @@ export default function Success() {
             A confirmation email has been sent to {userEmail || 'your email'}
           </p>
 
-          <button className="success-button" onClick={() => navigate('/Login')}>
+          <button className="success-button" onClick={() => navigate('/login')}>
             GO TO AERO
           </button>
         </main>
