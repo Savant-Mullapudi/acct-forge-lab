@@ -6,19 +6,30 @@ import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
 
 export default function ResetPassword() {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [touched, setTouched] = useState(false);
+  const [touchedEmail, setTouchedEmail] = useState(false);
+  const [touchedOtp, setTouchedOtp] = useState(false);
+  const [touchedPwd, setTouchedPwd] = useState(false);
+  const [touchedConfirm, setTouchedConfirm] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
 
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
-  const emailError = touched && !emailValid(email) ? "Please enter a valid email address" : "";
+  const emailError = touchedEmail && !emailValid(email) ? "Please enter a valid email address" : "";
+  const otpError = touchedOtp && otp.length !== 6 ? "Please enter the 6-digit code" : "";
+  const pwdError = touchedPwd && newPassword.length < 6 ? "Password must be at least 6 characters" : "";
+  const confirmError = touchedConfirm && newPassword !== confirmPassword ? "Passwords do not match" : "";
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSendOTP(e: React.FormEvent) {
     e.preventDefault();
-    setTouched(true);
+    setTouchedEmail(true);
 
     if (!emailValid(email)) {
       setError("Please enter a valid email address.");
@@ -29,60 +40,98 @@ export default function ResetPassword() {
     setError(null);
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/login`,
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          shouldCreateUser: false,
+        },
       });
 
-      if (resetError) {
-        setError("Unable to send reset email. Please try again.");
+      if (otpError) {
+        setError("Unable to send verification code. Please try again.");
         setLoading(false);
         return;
       }
 
-      setSent(true);
+      setStep(2);
       setLoading(false);
     } catch (error) {
-      console.error('Password reset error:', error);
+      console.error('Send OTP error:', error);
       setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   }
 
-  if (sent) {
-    return (
-      <div className="rp-wrap">
-        <div className="rp-col rp-col-form">
-          <div className="rp-brand">
-            <img
-              src={logoFullDark}
-              alt="Trace AQ | Aero"
-              width={350}
-              height={50}
-            />
-          </div>
+  async function handleVerifyOTP(e: React.FormEvent) {
+    e.preventDefault();
+    setTouchedOtp(true);
 
-          <h1 className="rp-title">Check your email</h1>
-          <p className="rp-subtitle">
-            We've sent a password reset link to <strong>{email}</strong>
-          </p>
-          <p className="rp-subtitle">
-            Click the link in the email to reset your password.
-          </p>
+    if (otp.length !== 6) {
+      setError("Please enter the 6-digit code.");
+      return;
+    }
 
-          <button
-            className="rp-submit"
-            onClick={() => navigate('/login')}
-            data-testid="button-back-to-login"
-          >
-            BACK TO LOGIN
-          </button>
-        </div>
+    setLoading(true);
+    setError(null);
 
-        <div className="rp-col-art">
-          <img src={loginBackground} alt="" />
-        </div>
-      </div>
-    );
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: otp,
+        type: 'email',
+      });
+
+      if (verifyError) {
+        setError("Invalid or expired code. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      setStep(3);
+      setLoading(false);
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setTouchedPwd(true);
+    setTouchedConfirm(true);
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        setError("Unable to update password. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      await supabase.auth.signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Update password error:', error);
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -97,69 +146,286 @@ export default function ResetPassword() {
           />
         </div>
 
-        <h1 className="rp-title">Reset your password</h1>
-        <p className="rp-subtitle">We'll email you a link to reset your password</p>
+        {step === 1 && (
+          <>
+            <h1 className="rp-title">Reset your password</h1>
+            <p className="rp-subtitle">We'll email you a 6-digit verification code</p>
 
-        {error && (
-          <div className="rp-error" role="alert" data-testid="text-error-message">
-            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
-              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1" />
-              <path
-                d="M12 7v6m0 4h.01"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form className="rp-form" onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <input
-              className={`input ${emailError ? 'input-error' : ''}`}
-              type="email"
-              placeholder="Email address"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => setTouched(true)}
-              aria-invalid={!!emailError}
-              aria-describedby="resetEmailErr"
-              data-testid="input-email"
-              required
-            />
-            {emailError && (
-              <div
-                id="resetEmailErr"
-                className="field-error"
-                data-testid="text-email-error"
-              >
-                {emailError}
+            {error && (
+              <div className="rp-error" role="alert" data-testid="text-error-message">
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
+                  <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1" />
+                  <path
+                    d="M12 7v6m0 4h.01"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span>{error}</span>
               </div>
             )}
-          </div>
 
-          <button
-            type="submit"
-            className="rp-submit"
-            disabled={loading}
-            data-testid="button-send-email"
-          >
-            {loading ? 'SENDING...' : 'SEND EMAIL'}
-          </button>
+            <form className="rp-form" onSubmit={handleSendOTP} noValidate>
+              <div className="field">
+                <input
+                  className={`input ${emailError ? 'input-error' : ''}`}
+                  type="email"
+                  placeholder=" "
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setTouchedEmail(true)}
+                  aria-invalid={!!emailError}
+                  aria-describedby="resetEmailErr"
+                  data-testid="input-email"
+                  required
+                />
+                <label className="floating-label">Email address</label>
+                {emailError && (
+                  <div
+                    id="resetEmailErr"
+                    className="field-error"
+                    data-testid="text-email-error"
+                  >
+                    {emailError}
+                  </div>
+                )}
+              </div>
 
-          <div className="rp-center">
-            <a
-              href="/login"
-              className="rp-link"
-              data-testid="link-back-to-login"
-            >
-              Back to login
-            </a>
-          </div>
-        </form>
+              <button
+                type="submit"
+                className="rp-submit"
+                disabled={loading}
+                data-testid="button-send-code"
+              >
+                {loading ? 'SENDING...' : 'SEND CODE'}
+              </button>
+
+              <div className="rp-center">
+                <a
+                  href="/login"
+                  className="rp-link"
+                  data-testid="link-back-to-login"
+                >
+                  Back to login
+                </a>
+              </div>
+            </form>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <h1 className="rp-title">Enter verification code</h1>
+            <p className="rp-subtitle">We sent a 6-digit code to <strong>{email}</strong></p>
+
+            {error && (
+              <div className="rp-error" role="alert" data-testid="text-error-message">
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
+                  <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1" />
+                  <path
+                    d="M12 7v6m0 4h.01"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form className="rp-form" onSubmit={handleVerifyOTP} noValidate>
+              <div className="field">
+                <input
+                  className={`input ${otpError ? 'input-error' : ''}`}
+                  type="text"
+                  placeholder=" "
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  onBlur={() => setTouchedOtp(true)}
+                  aria-invalid={!!otpError}
+                  aria-describedby="otpErr"
+                  data-testid="input-otp"
+                  required
+                />
+                <label className="floating-label">6-digit code</label>
+                {otpError && (
+                  <div
+                    id="otpErr"
+                    className="field-error"
+                    data-testid="text-otp-error"
+                  >
+                    {otpError}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="rp-submit"
+                disabled={loading}
+                data-testid="button-verify-code"
+              >
+                {loading ? 'VERIFYING...' : 'VERIFY CODE'}
+              </button>
+
+              <div className="rp-center">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="rp-link"
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                  data-testid="link-back"
+                >
+                  Back
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <h1 className="rp-title">Set new password</h1>
+            <p className="rp-subtitle">Enter your new password below</p>
+
+            {error && (
+              <div className="rp-error" role="alert" data-testid="text-error-message">
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
+                  <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.1" />
+                  <path
+                    d="M12 7v6m0 4h.01"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form className="rp-form" onSubmit={handleResetPassword} noValidate>
+              <div className="field">
+                <input
+                  className={`input ${pwdError ? 'input-error' : ''}`}
+                  type={showPwd ? "text" : "password"}
+                  placeholder=" "
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  onBlur={() => setTouchedPwd(true)}
+                  aria-invalid={!!pwdError}
+                  aria-describedby="pwdErr"
+                  data-testid="input-new-password"
+                  required
+                />
+                <label className="floating-label">New password</label>
+                <button
+                  type="button"
+                  className="eye-toggle"
+                  onClick={() => setShowPwd(!showPwd)}
+                  tabIndex={-1}
+                  aria-label={showPwd ? "Hide password" : "Show password"}
+                  data-testid="button-toggle-password"
+                >
+                  {showPwd ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M3 3l18 18M10.5 10.677a2 2 0 002.823 2.823M7.362 7.561C5.68 8.74 4.279 10.42 3 12c1.889 2.991 5.282 6 9 6 1.55 0 3.043-.523 4.395-1.453M12 6c4.008 0 6.701 3.158 9 6a15.66 15.66 0 01-1.658 2.122"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
+                {pwdError && (
+                  <div
+                    id="pwdErr"
+                    className="field-error"
+                    data-testid="text-password-error"
+                  >
+                    {pwdError}
+                  </div>
+                )}
+              </div>
+
+              <div className="field">
+                <input
+                  className={`input ${confirmError ? 'input-error' : ''}`}
+                  type={showConfirm ? "text" : "password"}
+                  placeholder=" "
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onBlur={() => setTouchedConfirm(true)}
+                  aria-invalid={!!confirmError}
+                  aria-describedby="confirmErr"
+                  data-testid="input-confirm-password"
+                  required
+                />
+                <label className="floating-label">Confirm password</label>
+                <button
+                  type="button"
+                  className="eye-toggle"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  tabIndex={-1}
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                  data-testid="button-toggle-confirm-password"
+                >
+                  {showConfirm ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M3 3l18 18M10.5 10.677a2 2 0 002.823 2.823M7.362 7.561C5.68 8.74 4.279 10.42 3 12c1.889 2.991 5.282 6 9 6 1.55 0 3.043-.523 4.395-1.453M12 6c4.008 0 6.701 3.158 9 6a15.66 15.66 0 01-1.658 2.122"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  )}
+                </button>
+                {confirmError && (
+                  <div
+                    id="confirmErr"
+                    className="field-error"
+                    data-testid="text-confirm-password-error"
+                  >
+                    {confirmError}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="rp-submit"
+                disabled={loading}
+                data-testid="button-reset-password"
+              >
+                {loading ? 'UPDATING...' : 'RESET PASSWORD'}
+              </button>
+            </form>
+          </>
+        )}
       </div>
 
       <div className="rp-col-art">
