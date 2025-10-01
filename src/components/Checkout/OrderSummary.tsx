@@ -12,6 +12,7 @@ type Props = {
   subscribeEnabled?: boolean;
   onSubscribe?: () => void;
   isProcessing?: boolean;
+  onCouponApplied?: (couponCode: string | null) => void;
 };
 
 const money = (n: number, currency = "USD") =>
@@ -25,6 +26,7 @@ const OrderSummary: React.FC<Props> = ({
   subscribeEnabled = false,
   onSubscribe,
   isProcessing = false,
+  onCouponApplied,
 }: Props) => {
   const [showDesc, setShowDesc] = React.useState(false);
   const [coupon, setCoupon] = React.useState("");
@@ -73,10 +75,12 @@ const OrderSummary: React.FC<Props> = ({
 
       if (data?.valid) {
         setAppliedCoupon(data);
+        onCouponApplied?.(code);
         toast.success(`Promo code "${code}" applied successfully!`);
       } else {
         const msg = data?.error || "Invalid promo code";
         setAppliedCoupon(null);
+        onCouponApplied?.(null);
         toast.error(msg);
       }
     } catch (error: any) {

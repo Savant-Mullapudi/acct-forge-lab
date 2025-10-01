@@ -10,6 +10,7 @@ type Props = {
   unitPrice?: number;
   currency?: string;
   subscribeEnabled?: boolean;
+  onCouponApplied?: (couponCode: string | null) => void;
 };
 
 const OrderSummaryWithPayment: React.FC<Props> = (props) => {

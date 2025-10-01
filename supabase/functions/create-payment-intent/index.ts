@@ -31,13 +31,13 @@ serve(async (req) => {
       throw new Error("User not authenticated");
     }
 
-    const { priceId } = await req.json();
+    const { priceId, promotionCode } = await req.json();
 
     if (!priceId) {
       throw new Error("Missing required parameter: priceId");
     }
 
-    console.log("Creating payment intent for user:", user.email, "with price:", priceId);
+    console.log("Creating payment intent for user:", user.email, "with price:", priceId, "promotion code:", promotionCode || "none");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -63,17 +63,42 @@ serve(async (req) => {
     const price = await stripe.prices.retrieve(priceId);
     console.log("Price details:", price.type, price.unit_amount, price.currency);
 
+    // Calculate the final amount with optional promotion code
+    let finalAmount = price.unit_amount || 0;
+    const paymentMetadata: any = {
+      priceId: priceId,
+      userId: user.id,
+      userEmail: user.email,
+    };
+
+    // If a promotion code is provided, apply the discount
+    if (promotionCode) {
+      try {
+        const coupon = await stripe.coupons.retrieve(promotionCode);
+        if (coupon.valid) {
+          if (coupon.percent_off) {
+            finalAmount = Math.round(finalAmount * (1 - coupon.percent_off / 100));
+            console.log(`Applied ${coupon.percent_off}% discount. Original: ${price.unit_amount}, Final: ${finalAmount}`);
+          } else if (coupon.amount_off) {
+            finalAmount = Math.max(0, finalAmount - coupon.amount_off);
+            console.log(`Applied ${coupon.amount_off} amount discount. Original: ${price.unit_amount}, Final: ${finalAmount}`);
+          }
+          paymentMetadata.promotionCode = promotionCode;
+          paymentMetadata.discountApplied = 'true';
+        }
+      } catch (error) {
+        console.error("Error applying promotion code:", error);
+        // Continue without the discount if there's an error
+      }
+    }
+
     // Create payment intent with specific payment methods (excluding Affirm)
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: price.unit_amount || 0,
+      amount: finalAmount,
       currency: price.currency,
       customer: customerId,
       payment_method_types: ['card', 'cashapp', 'klarna', 'amazon_pay', 'link'],
-      metadata: {
-        priceId: priceId,
-        userId: user.id,
-        userEmail: user.email,
-      },
+      metadata: paymentMetadata,
     });
 
     console.log("Created payment intent:", paymentIntent.id);

@@ -23,6 +23,7 @@ export default function Checkout() {
   const [reviewConfirmed, setReviewConfirmed] = React.useState(false);
   const [clientSecret, setClientSecret] = React.useState<string | null>(null);
   const [isLoadingPayment, setIsLoadingPayment] = React.useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = React.useState<string | null>(null);
 
   const handlePaymentStepOpen = async () => {
     setAddressFilled(true);
@@ -49,6 +50,7 @@ export default function Checkout() {
         const { data, error } = await supabase.functions.invoke('create-payment-intent', {
           body: {
             priceId: 'price_1SD8wWCaDTRDsxQRp5dKKTIs', // Replace with your actual price ID
+            promotionCode: appliedCouponCode,
           },
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -123,7 +125,10 @@ export default function Checkout() {
                 />
               </div>
               
-              <OrderSummaryWithPayment subscribeEnabled={reviewConfirmed} />
+              <OrderSummaryWithPayment 
+                subscribeEnabled={reviewConfirmed} 
+                onCouponApplied={setAppliedCouponCode}
+              />
             </Elements>
           ) : (
             <>
@@ -154,7 +159,10 @@ export default function Checkout() {
               </div>
               
               <aside className="aside">
-                <OrderSummary subscribeEnabled={false} />
+                <OrderSummary 
+                  subscribeEnabled={false} 
+                  onCouponApplied={setAppliedCouponCode}
+                />
               </aside>
             </>
           )}
