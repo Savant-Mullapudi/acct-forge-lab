@@ -4,8 +4,6 @@
   display: grid;
   grid-template-columns: 40% 60%;
   background: #fff;
-  max-width: 1440px;
-  margin: 0 auto;
 }
 
 .lp-col {
