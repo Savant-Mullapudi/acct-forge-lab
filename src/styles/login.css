@@ -265,7 +265,7 @@
   font-size: 14px;
 }
 .lp-footer-links a {
-  color: #2563eb;
+  color: inherit;
   text-decoration: none;
 }
 .lp-footer-links a:hover {

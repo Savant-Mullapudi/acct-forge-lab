@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import "../styles/login.css";
 import logoFullDark from '@/assets/logo-full-dark.png';
 import loginBackground from '@/assets/login-background.png';
@@ -21,18 +19,6 @@ export default function Login() {
   const [tPwd, setTPwd] = useState(false);
 
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-    checkSession();
-  }, [navigate]);
 
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
   const emailError = !emailValid(email)
@@ -40,7 +26,7 @@ export default function Login() {
     : "";
   const pwdError = pwd.trim().length === 0 ? "Password is required" : "";
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTEmail(true);
     setTPwd(true);
@@ -55,88 +41,17 @@ export default function Login() {
       return;
     }
 
-    if (isSignUp && (!firstName.trim() || !lastName.trim())) {
-      setError("First name and last name are required for sign up.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
-    try {
-      if (isSignUp) {
-        // Step 1: Sign up user with Supabase Auth
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password: pwd,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              first_name: firstName.trim(),
-              last_name: lastName.trim(),
-            }
-          }
-        });
-
-        if (signUpError) throw signUpError;
-
-        if (data.user) {
-          toast({
-            title: "Account created successfully!",
-            description: "You can now log in with your credentials.",
-          });
-          // Switch to login mode
-          setIsSignUp(false);
-          setPwd("");
-          setFirstName("");
-          setLastName("");
-        }
-      } else {
-        // Step 2: Login user
-        const { data, error: loginError } = await supabase.auth.signInWithPassword({
-          email,
-          password: pwd,
-        });
-
-        if (loginError) throw loginError;
-
-        if (data.session) {
-          // Step 3: Verify user exists in profiles table
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', data.user.id)
-            .single();
-
-          if (profileError || !profile) {
-            // Sign out if no profile found
-            await supabase.auth.signOut();
-            throw new Error("User profile not found. Please contact support.");
-          }
-
-          toast({
-            title: "Login successful!",
-            description: "Welcome back!",
-          });
-          navigate('/');
-        }
-      }
-    } catch (err: any) {
-      console.error('Auth error:', err);
-      
-      // Handle specific error cases
-      if (err.message?.includes("User already registered")) {
-        setError("This email is already registered. Please log in instead.");
-      } else if (err.message?.includes("Invalid login credentials")) {
-        setError("Invalid email or password. Please try again.");
-      } else if (err.message?.includes("Email not confirmed")) {
-        setError("Please confirm your email address before logging in.");
-      } else {
-        setError(err.message || "An error occurred. Please try again.");
-      }
-    } finally {
+    // TODO: Add authentication logic here
+    console.log('Login/Signup attempt:', { email, isSignUp });
+    
+    // Simulate success for now
+    setTimeout(() => {
       setLoading(false);
-    }
+      navigate('/');
+    }, 500);
   }
 
   return (
