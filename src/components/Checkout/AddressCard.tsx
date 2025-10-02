@@ -213,52 +213,16 @@ export default function AddressCard({
         return;
       }
 
-      // Check if address already exists for this user
-      const { data: existingAddress } = await supabase
-        .from('addresses')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (existingAddress) {
-        // Update existing address
-        const { error } = await supabase
-          .from('addresses')
-          .update({
-            address_line1: addr.line1 || '',
-            address_line2: addr.line2 || null,
-            city: addr.city || '',
-            state: addr.state || '',
-            postal_code: addr.postalCode || '',
-            country: addr.country || 'United States',
-          })
-          .eq('id', existingAddress.id);
-
-        if (error) {
-          console.error('Error updating address:', error);
-          alert('Failed to save address. Please try again.');
-          return;
-        }
-      } else {
-        // Insert new address
-        const { error } = await supabase
-          .from('addresses')
-          .insert({
-            user_id: session.user.id,
-            address_line1: addr.line1 || '',
-            address_line2: addr.line2 || null,
-            city: addr.city || '',
-            state: addr.state || '',
-            postal_code: addr.postalCode || '',
-            country: addr.country || 'United States',
-          });
-
-        if (error) {
-          console.error('Error saving address:', error);
-          alert('Failed to save address. Please try again.');
-          return;
-        }
-      }
+      // Store address data in localStorage for later creation
+      localStorage.setItem('pendingAddress', JSON.stringify({
+        userId: session.user.id,
+        addressLine1: addr.line1 || '',
+        addressLine2: addr.line2 || null,
+        city: addr.city || '',
+        state: addr.state || '',
+        postalCode: addr.postalCode || '',
+        country: addr.country || 'United States',
+      }));
 
       setSaved({ ...addr });
       onContinue();

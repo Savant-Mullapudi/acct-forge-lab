@@ -121,6 +121,14 @@ export default function SignUpCard({
 
       console.log('Signup successful:', data);
 
+      // Store signup data in localStorage for later profile creation
+      localStorage.setItem('pendingProfile', JSON.stringify({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: mail.trim(),
+        userId: data.user?.id
+      }));
+
       // Sync user to Cognito
       try {
         console.log('Syncing user to Cognito...');
