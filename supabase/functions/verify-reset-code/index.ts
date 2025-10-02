@@ -140,7 +140,117 @@ const handler = async (req: Request): Promise<Response> => {
 
           if (!cognitoResponse.ok) {
             const errorText = await cognitoResponse.text();
-            console.error('Cognito password sync error:', errorText);
+            console.error('Cognito password sync error (direct AdminSetUserPassword):', errorText);
+
+            // Fallback: resolve actual Cognito Username via ListUsers filtered by email, then retry
+            try {
+              const listTarget = "AWSCognitoIdentityProviderService.ListUsers";
+              const listPayload = JSON.stringify({
+                UserPoolId: cognitoUserPoolId,
+                Filter: `email = \"${email}\"`,
+                Limit: 1,
+              });
+
+              const timestamp2 = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
+              const dateStamp2 = timestamp2.slice(0, 8);
+              const canonicalHeaders2 = `content-type:application/x-amz-json-1.1\nhost:${host}\nx-amz-date:${timestamp2}\nx-amz-target:${listTarget}\n`;
+              const signedHeaders2 = "content-type;host;x-amz-date;x-amz-target";
+
+              const payloadHash2 = await crypto.subtle.digest("SHA-256", encoder.encode(listPayload));
+              const payloadHashHex2 = Array.from(new Uint8Array(payloadHash2)).map((b) => b.toString(16).padStart(2, "0")).join("");
+              const canonicalRequest2 = `POST\n/\n\n${canonicalHeaders2}\n${signedHeaders2}\n${payloadHashHex2}`;
+              const canonicalRequestHash2 = await crypto.subtle.digest("SHA-256", encoder.encode(canonicalRequest2));
+              const canonicalRequestHashHex2 = Array.from(new Uint8Array(canonicalRequestHash2)).map((b) => b.toString(16).padStart(2, "0")).join("");
+              const credentialScope2 = `${dateStamp2}/${awsRegion}/${service}/aws4_request`;
+              const stringToSign2 = `AWS4-HMAC-SHA256\n${timestamp2}\n${credentialScope2}\n${canonicalRequestHashHex2}`;
+
+              // Derive signing key again for safety
+              const getSignatureKey2 = async (key: string, dateStamp: string, regionName: string, serviceName: string) => {
+                const kDate = await crypto.subtle.importKey("raw", encoder.encode(`AWS4${key}`), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+                const kDateSig = await crypto.subtle.sign("HMAC", kDate, encoder.encode(dateStamp));
+                const kRegion = await crypto.subtle.importKey("raw", kDateSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+                const kRegionSig = await crypto.subtle.sign("HMAC", kRegion, encoder.encode(regionName));
+                const kService = await crypto.subtle.importKey("raw", kRegionSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+                const kServiceSig = await crypto.subtle.sign("HMAC", kService, encoder.encode(serviceName));
+                const kSigning = await crypto.subtle.importKey("raw", kServiceSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+                return kSigning;
+              };
+
+              const signingKey2 = await getSignatureKey2(awsSecretAccessKey, dateStamp2, awsRegion, service);
+              const signature2 = await crypto.subtle.sign("HMAC", signingKey2, encoder.encode(stringToSign2));
+              const signatureHex2 = Array.from(new Uint8Array(signature2)).map((b) => b.toString(16).padStart(2, "0")).join("");
+              const authorizationHeader2 = `AWS4-HMAC-SHA256 Credential=${awsAccessKeyId}/${credentialScope2}, SignedHeaders=${signedHeaders2}, Signature=${signatureHex2}`;
+
+              const listResp = await fetch(`https://${host}/`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/x-amz-json-1.1",
+                  "X-Amz-Date": timestamp2,
+                  "X-Amz-Target": listTarget,
+                  "Authorization": authorizationHeader2,
+                },
+                body: listPayload,
+              });
+
+              if (listResp.ok) {
+                const listJson: any = await listResp.json();
+                const username = listJson?.Users?.[0]?.Username;
+                if (username) {
+                  console.log('Resolved Cognito Username via ListUsers:', username);
+
+                  // Retry AdminSetUserPassword with resolved Username
+                  const retryPayload = JSON.stringify({
+                    UserPoolId: cognitoUserPoolId,
+                    Username: username,
+                    Password: newPassword,
+                    Permanent: true,
+                  });
+
+                  const timestamp3 = new Date().toISOString().replace(/[:-]|\.\d{3}/g, "");
+                  const dateStamp3 = timestamp3.slice(0, 8);
+                  const canonicalHeaders3 = `content-type:application/x-amz-json-1.1\nhost:${host}\nx-amz-date:${timestamp3}\nx-amz-target:${target}\n`;
+                  const signedHeaders3 = "content-type;host;x-amz-date;x-amz-target";
+
+                  const payloadHash3 = await crypto.subtle.digest("SHA-256", encoder.encode(retryPayload));
+                  const payloadHashHex3 = Array.from(new Uint8Array(payloadHash3)).map((b) => b.toString(16).padStart(2, "0")).join("");
+                  const canonicalRequest3 = `POST\n/\n\n${canonicalHeaders3}\n${signedHeaders3}\n${payloadHashHex3}`;
+                  const canonicalRequestHash3 = await crypto.subtle.digest("SHA-256", encoder.encode(canonicalRequest3));
+                  const canonicalRequestHashHex3 = Array.from(new Uint8Array(canonicalRequestHash3)).map((b) => b.toString(16).padStart(2, "0")).join("");
+                  const credentialScope3 = `${dateStamp3}/${awsRegion}/${service}/aws4_request`;
+                  const stringToSign3 = `AWS4-HMAC-SHA256\n${timestamp3}\n${credentialScope3}\n${canonicalRequestHashHex3}`;
+
+                  const signingKey3 = await getSignatureKey2(awsSecretAccessKey, dateStamp3, awsRegion, service);
+                  const signature3 = await crypto.subtle.sign("HMAC", signingKey3, encoder.encode(stringToSign3));
+                  const signatureHex3 = Array.from(new Uint8Array(signature3)).map((b) => b.toString(16).padStart(2, "0")).join("");
+                  const authorizationHeader3 = `AWS4-HMAC-SHA256 Credential=${awsAccessKeyId}/${credentialScope3}, SignedHeaders=${signedHeaders3}, Signature=${signatureHex3}`;
+
+                  const retryResp = await fetch(`https://${host}/`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/x-amz-json-1.1",
+                      "X-Amz-Date": timestamp3,
+                      "X-Amz-Target": target,
+                      "Authorization": authorizationHeader3,
+                    },
+                    body: retryPayload,
+                  });
+
+                  if (!retryResp.ok) {
+                    const retryText = await retryResp.text();
+                    console.error('Cognito retry password sync error:', retryText);
+                  } else {
+                    console.log('Password synced to Cognito successfully (after resolving Username)');
+                  }
+                } else {
+                  console.error('Cognito ListUsers did not return a Username for email:', email);
+                }
+              } else {
+                const listText = await listResp.text();
+                console.error('Cognito ListUsers request failed:', listText);
+              }
+            } catch (listErr) {
+              console.error('Cognito ListUsers fallback failed:', listErr);
+            }
           } else {
             console.log('Password synced to Cognito successfully');
           }

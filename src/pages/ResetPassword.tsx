@@ -19,6 +19,12 @@ export default function ResetPassword() {
   const [touchedConfirm, setTouchedConfirm] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showPwdHints, setShowPwdHints] = useState(false);
+  const hasMinLength8 = newPassword.length >= 8;
+  const hasLetter = /[a-zA-Z]/.test(newPassword);
+  const hasNumber = /\d/.test(newPassword);
+  const hasUpperAndLower = /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword);
+  const hasConsecutive = /(.)\1{3}|0123|1234|2345|3456|4567|5678|6789|abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz|qwer|wert|erty|rtyu|tyui|yuio|uiop|asdf|sdfg|dfgh|fghj|ghjk|hjkl|zxcv|xcvb|cvbn|vbnm/i.test(newPassword);
   const navigate = useNavigate();
 
   const emailValid = (v: string) => /\S+@\S+\.\S+/.test(v);
@@ -310,17 +316,21 @@ export default function ResetPassword() {
             )}
 
             <form className="rp-form" onSubmit={handleResetPassword} noValidate>
-              <div className="field">
+              <div className="field" style={{ position: 'relative', zIndex: 10 }}>
                 <input
                   className={`input ${pwdError ? 'input-error' : ''}`}
                   type={showPwd ? "text" : "password"}
                   placeholder=" "
                   autoComplete="new-password"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  onBlur={() => setTouchedPwd(true)}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    if (e.target.value.length > 0) setShowPwdHints(true);
+                  }}
+                  onFocus={() => { if (newPassword.length > 0) setShowPwdHints(true); }}
+                  onBlur={() => { setTouchedPwd(true); setShowPwdHints(false); }}
                   aria-invalid={!!pwdError}
-                  aria-describedby="pwdErr"
+                  aria-describedby="pwdErr pwdHints"
                   data-testid="input-new-password"
                   required
                 />
@@ -353,7 +363,56 @@ export default function ResetPassword() {
                     </svg>
                   )}
                 </button>
-                {pwdError && (
+
+                {showPwdHints && (
+                  <div
+                    id="pwdHints"
+                    style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: 0,
+                      marginBottom: 8,
+                      padding: 16,
+                      background: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: 8,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.15)',
+                      zIndex: 1000,
+                      minWidth: 350,
+                      maxWidth: 400,
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, marginBottom: 8, color: '#374151' }}>
+                      Password must
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      <li style={{ color: hasMinLength8 ? '#16a34a' : '#991b1b', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 16 }}>•</span> Have at least 8 characters
+                      </li>
+                      <li style={{ color: hasLetter ? '#16a34a' : '#991b1b', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 16 }}>•</span> Have at least 1 letter (a, b, c...)
+                      </li>
+                      <li style={{ color: hasNumber ? '#16a34a' : '#991b1b', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 16 }}>•</span> Have at least 1 number (1, 2, 3...)
+                      </li>
+                      <li style={{ color: hasUpperAndLower ? '#16a34a' : '#991b1b', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 16 }}>•</span> Include both uppercase and lowercase characters
+                      </li>
+                    </ul>
+                    <div style={{ fontWeight: 600, marginBottom: 8, color: '#374151' }}>
+                      Password must not
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      <li style={{ color: !hasConsecutive ? '#16a34a' : '#991b1b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 16 }}>•</span> Contain 4 consecutive characters (e.g. "11111", "12345", "abcde", or "qwert")
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {pwdError && !showPwdHints && (
                   <div
                     id="pwdErr"
                     className="field-error"
