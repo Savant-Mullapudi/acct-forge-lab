@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-import { CognitoJwtVerifier } from "https://esm.sh/aws-jwt-verify@4.0.1";
+import { decode as base64UrlDecode } from "https://deno.land/std@0.190.0/encoding/base64url.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +10,120 @@ const corsHeaders = {
 interface CognitoAuthRequest {
   accessToken: string;
   idToken: string;
+}
+
+interface JWK {
+  alg: string;
+  e: string;
+  kid: string;
+  kty: string;
+  n: string;
+  use: string;
+}
+
+interface JWKS {
+  keys: JWK[];
+}
+
+interface JWTHeader {
+  kid: string;
+  alg: string;
+}
+
+interface JWTPayload {
+  sub: string;
+  email: string;
+  given_name?: string;
+  family_name?: string;
+  exp: number;
+  iss: string;
+  aud: string;
+}
+
+async function fetchJWKS(userPoolId: string, region: string): Promise<JWKS> {
+  const jwksUrl = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`;
+  const response = await fetch(jwksUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JWKS: ${response.statusText}`);
+  }
+  return await response.json();
+}
+
+function decodeJWT(token: string): { header: JWTHeader; payload: JWTPayload; signature: string } {
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    throw new Error("Invalid JWT format");
+  }
+
+  const header = JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[0])));
+  const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[1])));
+  
+  return { header, payload, signature: parts[2] };
+}
+
+async function verifyJWT(token: string, userPoolId: string, region: string, clientId: string): Promise<JWTPayload> {
+  const { header, payload, signature } = decodeJWT(token);
+
+  // Verify expiration
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.exp < now) {
+    throw new Error("Token expired");
+  }
+
+  // Verify issuer
+  const expectedIssuer = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`;
+  if (payload.iss !== expectedIssuer) {
+    throw new Error("Invalid issuer");
+  }
+
+  // Verify audience (client ID)
+  if (payload.aud !== clientId) {
+    throw new Error("Invalid audience");
+  }
+
+  // Fetch JWKS and find the right key
+  const jwks = await fetchJWKS(userPoolId, region);
+  const jwk = jwks.keys.find((key) => key.kid === header.kid);
+  
+  if (!jwk) {
+    throw new Error("Public key not found in JWKS");
+  }
+
+  // Import the public key
+  const publicKey = await crypto.subtle.importKey(
+    "jwk",
+    {
+      kty: jwk.kty,
+      n: jwk.n,
+      e: jwk.e,
+      alg: jwk.alg,
+      use: jwk.use,
+    },
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: "SHA-256",
+    },
+    false,
+    ["verify"]
+  );
+
+  // Verify signature
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token.split(".").slice(0, 2).join("."));
+  const signatureBytes = new Uint8Array(base64UrlDecode(signature));
+
+  const isValid = await crypto.subtle.verify(
+    "RSASSA-PKCS1-v1_5",
+    publicKey,
+    signatureBytes,
+    data
+  );
+
+  if (!isValid) {
+    throw new Error("Invalid signature");
+  }
+
+  return payload;
 }
 
 serve(async (req) => {
@@ -27,7 +141,7 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Cognito JWT verifier
+    // Get Cognito configuration
     const userPoolId = Deno.env.get("AWS_COGNITO_USER_POOL_ID");
     const clientId = Deno.env.get("AWS_COGNITO_CLIENT_ID");
     const region = Deno.env.get("AWS_REGION");
@@ -41,13 +155,7 @@ serve(async (req) => {
     }
 
     // Verify the ID token
-    const verifier = CognitoJwtVerifier.create({
-      userPoolId: userPoolId,
-      tokenUse: "id",
-      clientId: clientId,
-    });
-
-    const payload = await verifier.verify(idToken);
+    const payload = await verifyJWT(idToken, userPoolId, region, clientId);
     console.log("Token verified successfully:", payload.sub);
 
     // Extract user information from the token
@@ -122,7 +230,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error("Error in Cognito auth:", error);
     
-    if (error.name === "JwtExpiredError") {
+    if (error.message?.includes("expired")) {
       return new Response(
         JSON.stringify({ error: "Token expired" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
