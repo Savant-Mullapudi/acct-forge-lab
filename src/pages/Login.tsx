@@ -263,6 +263,7 @@ export default function Login() {
               className="lp-link"
               style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
               data-testid="link-forgot-password"
+              title="We'll email you a 6-digit verification code to reset your password"
             >
               Forgot password?
             </button>
