@@ -120,6 +120,30 @@ export default function SignUpCard({
       }
 
       console.log('Signup successful:', data);
+
+      // Sync user to Cognito
+      try {
+        console.log('Syncing user to Cognito...');
+        const { data: cognitoData, error: cognitoError } = await supabase.functions.invoke('create-cognito-user', {
+          body: {
+            email: mail.trim(),
+            password: password,
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+          },
+        });
+
+        if (cognitoError) {
+          console.error('Cognito sync error:', cognitoError);
+          // Don't block the flow if Cognito sync fails
+        } else {
+          console.log('User synced to Cognito:', cognitoData);
+        }
+      } catch (cognitoError) {
+        console.error('Unexpected error during Cognito sync:', cognitoError);
+        // Don't block the flow if Cognito sync fails
+      }
+
       setSavedName(`${firstName.trim()} ${lastName.trim()}`);
       setSavedEmail(mail.trim());
       onContinue();
