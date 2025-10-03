@@ -67,20 +67,24 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="font-size: 18px; color: #333; margin: 10px 0;">
               <strong>Amount:</strong> ${formattedAmount}
             </p>
+            <p style="font-size: 18px; color: #333; margin: 10px 0;">
+              <strong>Subscription Date:</strong> ${Date}
+            </p>
             <p style="font-size: 14px; color: #666;">
               <strong>Email:</strong> ${user.email}
             </p>
           </div>
           
           <p style="font-size: 16px; color: #555; line-height: 1.6;">
-            You now have full access to all premium features. If you have any questions, 
-            feel free to reach out to our support team.
+            You now have full access to Trace AQ | Aero. If you have any questions, 
+            feel free to reach out to our support team by mailing at 
+            <a href="mailto:support@traceaq.com" style="color: #0073e6;">support@traceaq.com</a>
           </p>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="font-size: 14px; color: #999;">
               Best regards,<br>
-              The Team
+              Trace AQ
             </p>
           </div>
         </div>
