@@ -48,6 +48,12 @@ const handler = async (req: Request): Promise<Response> => {
       currency: currency || 'USD',
     }).format(amount / 100);
 
+    const subscriptionDate = new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(new Date());
+
     const emailResponse = await resend.emails.send({
       from: "Trace AQ <onboarding@resend.dev>", // Replace with your verified domain
       to: [user.email],
@@ -68,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
               <strong>Amount:</strong> ${formattedAmount}
             </p>
             <p style="font-size: 18px; color: #333; margin: 10px 0;">
-              <strong>Subscription Date:</strong> ${Date}
+              <strong>Subscription Date:</strong> ${subscriptionDate}
             </p>
             <p style="font-size: 14px; color: #666;">
               <strong>Email:</strong> ${user.email}
