@@ -108,19 +108,27 @@ const handler = async (req: Request): Promise<Response> => {
           const credentialScope = `${dateStamp}/${awsRegion}/${service}/aws4_request`;
           const stringToSign = `AWS4-HMAC-SHA256\n${timestamp}\n${credentialScope}\n${canonicalRequestHashHex}`;
 
-          const getSignatureKey = async (key: string, dateStamp: string, regionName: string, serviceName: string) => {
-            const kDate = await crypto.subtle.importKey("raw", encoder.encode(`AWS4${key}`), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-            const kDateSig = await crypto.subtle.sign("HMAC", kDate, encoder.encode(dateStamp));
-            const kRegion = await crypto.subtle.importKey("raw", kDateSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-            const kRegionSig = await crypto.subtle.sign("HMAC", kRegion, encoder.encode(regionName));
-            const kService = await crypto.subtle.importKey("raw", kRegionSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-            const kServiceSig = await crypto.subtle.sign("HMAC", kService, encoder.encode(serviceName));
-            const kSigning = await crypto.subtle.importKey("raw", kServiceSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-            return kSigning;
-          };
+          // Helper function for HMAC signing
+          async function hmac(key: Uint8Array, data: string): Promise<Uint8Array> {
+            const cryptoKey = await crypto.subtle.importKey(
+              "raw",
+              key,
+              { name: "HMAC", hash: "SHA-256" },
+              false,
+              ["sign"]
+            );
+            const signature = await crypto.subtle.sign("HMAC", cryptoKey, encoder.encode(data));
+            return new Uint8Array(signature);
+          }
 
-          const signingKey = await getSignatureKey(awsSecretAccessKey, dateStamp, awsRegion, service);
-          const signature = await crypto.subtle.sign("HMAC", signingKey, encoder.encode(stringToSign));
+          // Create signing key
+          let signingKey = encoder.encode(`AWS4${awsSecretAccessKey}`);
+          signingKey = await hmac(signingKey, dateStamp);
+          signingKey = await hmac(signingKey, awsRegion);
+          signingKey = await hmac(signingKey, service);
+          signingKey = await hmac(signingKey, "aws4_request");
+
+          const signature = await hmac(signingKey, stringToSign);
           const signatureHex = Array.from(new Uint8Array(signature))
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("");
@@ -164,20 +172,14 @@ const handler = async (req: Request): Promise<Response> => {
               const credentialScope2 = `${dateStamp2}/${awsRegion}/${service}/aws4_request`;
               const stringToSign2 = `AWS4-HMAC-SHA256\n${timestamp2}\n${credentialScope2}\n${canonicalRequestHashHex2}`;
 
-              // Derive signing key again for safety
-              const getSignatureKey2 = async (key: string, dateStamp: string, regionName: string, serviceName: string) => {
-                const kDate = await crypto.subtle.importKey("raw", encoder.encode(`AWS4${key}`), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-                const kDateSig = await crypto.subtle.sign("HMAC", kDate, encoder.encode(dateStamp));
-                const kRegion = await crypto.subtle.importKey("raw", kDateSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-                const kRegionSig = await crypto.subtle.sign("HMAC", kRegion, encoder.encode(regionName));
-                const kService = await crypto.subtle.importKey("raw", kRegionSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-                const kServiceSig = await crypto.subtle.sign("HMAC", kService, encoder.encode(serviceName));
-                const kSigning = await crypto.subtle.importKey("raw", kServiceSig, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-                return kSigning;
-              };
+              // Create signing key for ListUsers
+              let signingKey2 = encoder.encode(`AWS4${awsSecretAccessKey}`);
+              signingKey2 = await hmac(signingKey2, dateStamp2);
+              signingKey2 = await hmac(signingKey2, awsRegion);
+              signingKey2 = await hmac(signingKey2, service);
+              signingKey2 = await hmac(signingKey2, "aws4_request");
 
-              const signingKey2 = await getSignatureKey2(awsSecretAccessKey, dateStamp2, awsRegion, service);
-              const signature2 = await crypto.subtle.sign("HMAC", signingKey2, encoder.encode(stringToSign2));
+              const signature2 = await hmac(signingKey2, stringToSign2);
               const signatureHex2 = Array.from(new Uint8Array(signature2)).map((b) => b.toString(16).padStart(2, "0")).join("");
               const authorizationHeader2 = `AWS4-HMAC-SHA256 Credential=${awsAccessKeyId}/${credentialScope2}, SignedHeaders=${signedHeaders2}, Signature=${signatureHex2}`;
 
@@ -219,8 +221,14 @@ const handler = async (req: Request): Promise<Response> => {
                   const credentialScope3 = `${dateStamp3}/${awsRegion}/${service}/aws4_request`;
                   const stringToSign3 = `AWS4-HMAC-SHA256\n${timestamp3}\n${credentialScope3}\n${canonicalRequestHashHex3}`;
 
-                  const signingKey3 = await getSignatureKey2(awsSecretAccessKey, dateStamp3, awsRegion, service);
-                  const signature3 = await crypto.subtle.sign("HMAC", signingKey3, encoder.encode(stringToSign3));
+                  // Create signing key for retry
+                  let signingKey3 = encoder.encode(`AWS4${awsSecretAccessKey}`);
+                  signingKey3 = await hmac(signingKey3, dateStamp3);
+                  signingKey3 = await hmac(signingKey3, awsRegion);
+                  signingKey3 = await hmac(signingKey3, service);
+                  signingKey3 = await hmac(signingKey3, "aws4_request");
+
+                  const signature3 = await hmac(signingKey3, stringToSign3);
                   const signatureHex3 = Array.from(new Uint8Array(signature3)).map((b) => b.toString(16).padStart(2, "0")).join("");
                   const authorizationHeader3 = `AWS4-HMAC-SHA256 Credential=${awsAccessKeyId}/${credentialScope3}, SignedHeaders=${signedHeaders3}, Signature=${signatureHex3}`;
 
